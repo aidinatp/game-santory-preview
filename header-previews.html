@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071d2c">
+  <title>پیش‌نمایش هدر موبایل سانتورینی</title>
+  <style>
+    :root{color-scheme:dark;--ink:#effaff;--muted:#a9c4d0;--gold:#ffc857;--blue:#32b7df;--deep:#061722}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;min-height:100dvh;font-family:Tahoma,"Segoe UI",Arial,sans-serif;background:radial-gradient(circle at 50% -10%,#174e67 0,transparent 32%),#07131b;color:var(--ink)}
+    button,a{font:inherit;color:inherit}.page{max-width:1280px;margin:auto;padding:32px 18px 64px}.intro{text-align:center;max-width:680px;margin:0 auto 32px}.intro small{color:#6bd5ef;font-weight:800}.intro h1{font-size:clamp(25px,5vw,42px);margin:10px 0}.intro p{margin:0;color:var(--muted);line-height:1.9;font-size:13px}
+    .previews{display:grid;grid-template-columns:repeat(3,minmax(0,390px));justify-content:center;gap:28px}.option{min-width:0}.option-head{display:flex;align-items:center;justify-content:space-between;padding:0 5px 10px}.option-head b{font-size:15px}.option-head span{font-size:10px;color:#80a9b9}.phone{width:100%;min-height:720px;border:1px solid #ffffff24;border-radius:36px;overflow:hidden;position:relative;box-shadow:0 32px 80px #0009,0 0 0 7px #ffffff08;background:#092534}.phone:before{content:"";position:absolute;z-index:20;top:10px;left:50%;transform:translateX(-50%);width:88px;height:25px;border-radius:16px;background:#02080c}.status{height:45px;padding:14px 20px 0;display:flex;direction:ltr;justify-content:space-between;font-size:9px;position:relative;z-index:10}.mobile-nav{height:58px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:10}.brand{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900}.brand img{width:34px;height:34px;border-radius:11px}.circle-btn{width:38px;height:38px;border:1px solid #ffffff28;border-radius:13px;background:#ffffff12;display:grid;place-items:center}
+    .chip{display:inline-flex;align-items:center;gap:6px;min-height:31px;padding:0 10px;border:1px solid #ffffff30;border-radius:999px;background:#051a25aa;font-size:10px}.chip i{width:6px;height:6px;border-radius:50%;background:#48e29b;box-shadow:0 0 10px #48e29b}.cta{min-height:54px;border:0;border-radius:17px;text-decoration:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}.cta-primary{background:linear-gradient(135deg,#ffd66b,#f59e0b);color:#402300;box-shadow:0 13px 34px #f59e0b38}.cta-secondary{border:1px solid #ffffff30;background:#ffffff12;color:#fff}.meta-row{display:flex;gap:7px;flex-wrap:wrap}.meta{padding:7px 9px;border-radius:10px;background:#ffffff12;border:1px solid #ffffff13;font-size:9px;color:#d9f6ff}
+    /* گزینه اول: سینمایی */
+    .cinematic{background:#062133}.cinematic .hero-image{position:absolute;inset:0;background:linear-gradient(180deg,#06203422 0 33%,#0620349c 55%,#06151f 84%),linear-gradient(90deg,#07536a66,#05233211),url('cover-santorini.webp') center 24%/cover no-repeat;transform:scale(1.03)}.cinematic .hero-image:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 72% 20%,#74ddff30,transparent 34%)}.cinematic-content{position:absolute;z-index:4;inset:auto 20px 28px}.cinematic .eyebrow{font-size:10px;color:#a9edff;font-weight:900}.cinematic h2{font-size:43px;line-height:1.08;margin:10px 0 9px;text-shadow:0 4px 28px #000}.cinematic p{font-size:12px;line-height:1.9;color:#d4eaf1;margin:0 0 15px;max-width:330px}.cinematic .actions{display:grid;grid-template-columns:1fr 54px;gap:8px;margin-top:18px}.cinematic .play-icon{font-size:20px}
+    /* گزینه دوم: روشن و کارتی */
+    .airy{background:linear-gradient(180deg,#dff9ff 0,#fffaf0 67%);color:#103248}.airy .status,.airy .mobile-nav{color:#173c4d}.airy .circle-btn{border-color:#0c526c19;background:#fff;color:#0c526c}.airy .scene{height:310px;margin:0 14px;border-radius:28px;overflow:hidden;position:relative;background:url('cover-santorini.webp') center 43%/cover no-repeat;box-shadow:0 20px 40px #0c526c30}.airy .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 44%,#064e66b8)}.airy .scene-badge{position:absolute;z-index:2;right:13px;bottom:13px;background:#ffffffde;color:#0c526c;border-radius:12px;padding:8px 10px;font-size:9px;font-weight:900}.airy-copy{padding:22px 20px}.airy .kicker{color:#0585ad;font-size:10px;font-weight:900}.airy h2{font-size:34px;margin:8px 0 8px}.airy p{font-size:11px;line-height:1.9;color:#567584;margin:0 0 14px}.airy .meta{background:#e8f5f7;color:#315b6b;border:0}.airy .actions{display:grid;gap:8px;margin-top:18px}.airy .cta-secondary{border-color:#cde2e7;color:#17495b;background:#fff}
+    /* گزینه سوم: گیم‌محور */
+    .gamey{background:radial-gradient(circle at 50% 12%,#125f78,#071a27 52%,#050e15);isolation:isolate}.gamey:after{content:"";position:absolute;inset:0;z-index:-1;opacity:.17;background-image:linear-gradient(#6ddfff22 1px,transparent 1px),linear-gradient(90deg,#6ddfff22 1px,transparent 1px);background-size:29px 29px;mask-image:linear-gradient(black,transparent 68%)}.gamey .mobile-nav{border-bottom:1px solid #ffffff13}.game-card{margin:18px 16px 0;border:1px solid #53d4f34a;border-radius:28px;padding:15px;background:linear-gradient(145deg,#0e3a4dcc,#071a25e8);box-shadow:inset 0 1px #ffffff1f,0 25px 60px #0007}.game-art{height:265px;border-radius:20px;position:relative;overflow:hidden;background:url('cover-santorini.webp') center 44%/cover no-repeat}.game-art:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,#061923e8)}.level{position:absolute;z-index:2;left:11px;top:11px;border:1px solid #ffffff32;background:#071a25c9;border-radius:999px;padding:7px 9px;font-size:9px}.game-title{position:absolute;z-index:2;right:14px;bottom:12px}.game-title small{color:#77e4ff;font-size:9px}.game-title h2{font-size:30px;margin:4px 0 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.stat{text-align:center;padding:10px 3px;background:#ffffff09;border:1px solid #ffffff10;border-radius:12px}.stat b{display:block;font-size:12px}.stat small{font-size:8px;color:#87aebb}.gamey-copy{padding:17px 2px 0}.gamey-copy p{font-size:10px;line-height:1.8;color:#a7c3ce;margin:0}.gamey .actions{display:grid;grid-template-columns:1fr 50px;gap:8px;margin-top:14px}.gamey .cta{border-radius:15px}.quick-links{display:flex;justify-content:center;gap:22px;margin-top:22px;color:#85aebb;font-size:9px}.quick-links span{display:grid;justify-items:center;gap:6px}.quick-links i{font-style:normal;width:34px;height:34px;border-radius:12px;background:#ffffff0c;display:grid;place-items:center;font-size:15px}
+    .hint{margin:14px 5px 0;color:#7896a3;font-size:10px;line-height:1.7}
+    @media(max-width:1040px){.previews{grid-template-columns:repeat(2,minmax(0,390px))}}
+    @media(max-width:720px){.page{padding:22px 12px 48px}.intro{text-align:right;padding:0 5px;margin-bottom:24px}.intro h1{font-size:27px}.previews{grid-template-columns:minmax(0,390px);gap:38px}.phone{min-height:700px;border-radius:31px}.hint{font-size:11px}}
+    @media(max-width:390px){.page{padding-inline:0}.intro,.option-head,.hint{margin-inline:15px}.phone{border-radius:0;border-inline:0;box-shadow:none}.phone:before{top:8px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="intro">
+      <small>سه مسیر پیشنهادی برای هدر</small>
+      <h1>هدر موبایل سانتورینی</h1>
+      <p>هر طرح با اولویت شروع سریع بازی، خوانایی روی نمایشگر کوچک و لمس راحت ساخته شده است.</p>
+    </header>
+    <section class="previews" aria-label="پیش‌نمایش‌های هدر موبایل">
+      <article class="option">
+        <div class="option-head"><b>۱. ماجراجویی سینمایی</b><span>احساسی و چشم‌گیر</span></div>
+        <div class="phone cinematic">
+          <div class="hero-image" aria-hidden="true"></div>
+          <div class="status"><span>9:41</span><span>●●●  Wi‑Fi  87%</span></div>
+          <nav class="mobile-nav"><span class="brand"><img src="icon.svg" alt="">خانه بازی</span><button class="circle-btn" aria-label="منو">☰</button></nav>
+          <div class="cinematic-content">
+            <span class="chip"><i></i> آمادهٔ بازی آفلاین</span>
+            <div class="eyebrow">✦ پیشنهاد امروز</div>
+            <h2>جزیره را بساز،<br>قله را فتح کن</h2>
+            <p>در سانتورینی هر حرکت، شهری تازه می‌سازد و تو را یک قدم به پیروزی نزدیک‌تر می‌کند.</p>
+            <div class="meta-row"><span class="meta">♟ ۱–۲ بازیکن</span><span class="meta">◫ سه‌بعدی</span><span class="meta">◎ ۱۵ دقیقه</span></div>
+            <div class="actions"><a class="cta cta-primary" href="lobby.html?game=santorini">شروع بازی</a><a class="cta cta-secondary play-icon" href="arcade.html" aria-label="نمایش بازی‌ها">⌗</a></div>
+          </div>
+        </div>
+        <p class="hint">مناسب وقتی که تصویر بازی مهم‌ترین ابزار جذب کاربر باشد.</p>
+      </article>
+
+      <article class="option">
+        <div class="option-head"><b>۲. روشن و دوستانه</b><span>ساده و قابل اعتماد</span></div>
+        <div class="phone airy">
+          <div class="status"><span>9:41</span><span>●●●  Wi‑Fi  87%</span></div>
+          <nav class="mobile-nav"><span class="brand"><img src="icon.svg" alt="">خانه بازی</span><button class="circle-btn" aria-label="پروفایل">☺</button></nav>
+          <div class="scene"><span class="scene-badge">★ ۴٫۹ امتیاز بازیکنان</span></div>
+          <div class="airy-copy">
+            <div class="kicker">بازی منتخب این هفته</div>
+            <h2>سانتورینی</h2>
+            <p>ساختمان بساز، هوشمندانه صعود کن و پیش از حریفت به طبقهٔ سوم برس.</p>
+            <div class="meta-row"><span class="meta">استراتژیک</span><span class="meta">فارسی</span><span class="meta">بدون اینترنت</span></div>
+            <div class="actions"><a class="cta cta-primary" href="lobby.html?game=santorini">▶ بزن بریم</a><a class="cta cta-secondary" href="arcade.html">دیدن همهٔ بازی‌ها</a></div>
+          </div>
+        </div>
+        <p class="hint">خواناترین گزینه برای مخاطب عمومی و شروع سریع بدون شلوغی.</p>
+      </article>
+
+      <article class="option">
+        <div class="option-head"><b>۳. داشبورد بازیکن</b><span>مدرن و بازی‌محور</span></div>
+        <div class="phone gamey">
+          <div class="status"><span>9:41</span><span>●●●  Wi‑Fi  87%</span></div>
+          <nav class="mobile-nav"><span class="brand"><img src="icon.svg" alt="">خانه بازی</span><span class="chip"><i></i> آنلاین</span></nav>
+          <section class="game-card">
+            <div class="game-art"><span class="level">انتخاب سردبیر</span><div class="game-title"><small>نبرد در جزیرهٔ خدایان</small><h2>سانتورینی</h2></div></div>
+            <div class="stats"><div class="stat"><b>۱–۲</b><small>بازیکن</small></div><div class="stat"><b>۱۵′</b><small>زمان بازی</small></div><div class="stat"><b>فکری</b><small>سبک بازی</small></div></div>
+            <div class="gamey-copy"><p>حرکت کن، بساز و قبل از حریف به بلندترین نقطهٔ شهر برس.</p><div class="actions"><a class="cta cta-primary" href="lobby.html?game=santorini">شروع مأموریت</a><a class="cta cta-secondary" href="arcade.html" aria-label="افزودن به علاقه‌مندی">♡</a></div></div>
+          </section>
+          <div class="quick-links"><span><i>↶</i>ادامه بازی</span><span><i>♜</i>بازی‌ها</span><span><i>?</i>راهنما</span></div>
+        </div>
+        <p class="hint">مناسب محصولی که پروفایل، آمار و بازگشت روزانهٔ بازیکن مهم است.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

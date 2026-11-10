@@ -1,0 +1,14 @@
+{
+  "id": "./",
+  "name": "خانه بازی — بازی‌های رومیزی",
+  "short_name": "خانه بازی",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./arcade.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070A10",
+  "theme_color": "#070A10",
+  "icons": [{"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]
+}

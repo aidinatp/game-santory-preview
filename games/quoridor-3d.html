@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0f172a" />
+<title>کووریدور سه‌بعدی | 3D Quoridor</title>
+<style>
+  /* ============================================================
+     Theme variables
+     ============================================================ */
+  :root {
+    /* Dark theme (default) */
+    --bg-gradient-1: #1e293b;
+    --bg-gradient-2: #0f172a;
+    --bg-gradient-3: #020617;
+    --hud-bg: rgba(15, 23, 42, .75);
+    --hud-border: rgba(148, 163, 184, .2);
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --btn-bg: rgba(30, 41, 59, .85);
+    --btn-active-bg: linear-gradient(135deg, #f59e0b, #d97706);
+    --btn-active-border: #fbbf24;
+    --btn-active-text: #1e1300;
+    --btn-primary-bg: linear-gradient(135deg, #6366f1, #4f46e5);
+    --btn-primary-border: #818cf8;
+    --accent: #fbbf24;
+    --accent-2: #f97316;
+    --card-p1-color: #f8fafc;
+    --card-p2-color: #1e293b;
+    --modal-bg: linear-gradient(135deg, #1e293b, #0f172a);
+    --toast-error: #ef4444;
+    --toast-info: #3b82f6;
+    --ground-color: #0b1220;
+    --ring-color: #334155;
+    --turn-indicator-bg: rgba(15, 23, 42, .8);
+  }
+  html[data-theme="light"] {
+    /* Light theme: WHITE ground, BLACK board */
+    --bg-gradient-1: #ffffff;
+    --bg-gradient-2: #f1f5f9;
+    --bg-gradient-3: #cbd5e1;
+    --hud-bg: rgba(255, 255, 255, .9);
+    --hud-border: rgba(15, 23, 42, .15);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --btn-bg: rgba(255, 255, 255, .95);
+    --btn-active-bg: linear-gradient(135deg, #f59e0b, #d97706);
+    --btn-active-border: #fbbf24;
+    --btn-active-text: #1e1300;
+    --btn-primary-bg: linear-gradient(135deg, #6366f1, #4f46e5);
+    --btn-primary-border: #818cf8;
+    --accent: #d97706;
+    --accent-2: #ea580c;
+    --card-p1-color: #ffffff;
+    --card-p2-color: #0f172a;
+    --modal-bg: linear-gradient(135deg, #ffffff, #f1f5f9);
+    --toast-error: #dc2626;
+    --toast-info: #2563eb;
+    --ground-color: #ffffff;
+    --ring-color: #94a3b8;
+    --turn-indicator-bg: rgba(255, 255, 255, .95);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: 'Vazirmatn', 'Tahoma', 'Segoe UI', sans-serif;
+    background: radial-gradient(ellipse at center, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 70%, var(--bg-gradient-3) 100%);
+    color: var(--text-primary);
+    user-select: none;
+    transition: background .5s ease, color .3s ease;
+  }
+  @font-face {
+    font-family: 'Vazirmatn';
+    src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/fonts/webfonts/Vazirmatn-Regular.woff2') format('woff2');
+    font-display: swap;
+  }
+  #app { position: relative; width: 100vw; height: 100vh; }
+  #canvas-container { position: absolute; inset: 0; }
+  canvas { display: block; touch-action: none; }
+
+  /* ===== Top HUD ===== */
+  .hud-top {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    pointer-events: none; z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,.3), transparent);
+  }
+  html[data-theme="light"] .hud-top {
+    background: linear-gradient(to bottom, rgba(255,255,255,.5), transparent);
+  }
+  .player-card {
+    background: var(--hud-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--hud-border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    pointer-events: auto;
+    min-width: 130px;
+    transition: all .3s ease;
+  }
+  .player-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 22px rgba(251, 191, 36, .35), inset 0 0 12px rgba(251, 191, 36, .08);
+    transform: scale(1.03);
+  }
+  .player-card .name {
+    font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+    color: var(--text-primary);
+  }
+  .player-card .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .player-card .walls-left {
+    font-size: 12px; color: var(--text-secondary); margin-top: 4px;
+  }
+  .player-card .walls-bar {
+    margin-top: 6px; height: 4px; background: rgba(148,163,184,.2);
+    border-radius: 4px; overflow: hidden;
+  }
+  .player-card .walls-bar > div {
+    height: 100%; border-radius: 4px; transition: width .3s ease;
+  }
+  .p1 .dot { background: #f8fafc; color: #f8fafc; }
+  .p1 .walls-bar > div { background: linear-gradient(90deg, #f8fafc, #cbd5e1); }
+  .p2 .dot { background: #1e293b; color: #1e293b; box-shadow: 0 0 8px #475569; border: 1px solid #475569; }
+  .p2 .walls-bar > div { background: linear-gradient(90deg, #64748b, #334155); }
+
+  .title-center { text-align: center; pointer-events: none; }
+  .title-center h1 {
+    font-size: 18px; font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+  .title-center .turn-label {
+    font-size: 11px; color: var(--text-secondary); margin-top: 2px;
+  }
+  .title-center .online-indicator {
+    display: inline-block;
+    font-size: 10px;
+    color: #22c55e;
+    background: rgba(34, 197, 94, .15);
+    border: 1px solid rgba(34, 197, 94, .4);
+    padding: 1px 6px;
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+  .title-center .online-indicator.offline {
+    color: var(--text-muted);
+    background: rgba(100, 116, 139, .15);
+    border-color: rgba(100, 116, 139, .3);
+  }
+
+  /* ===== Bottom controls ===== */
+  .hud-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 14px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;
+    background: linear-gradient(to top, rgba(0,0,0,.5), transparent);
+    z-index: 10;
+  }
+  html[data-theme="light"] .hud-bottom {
+    background: linear-gradient(to top, rgba(255,255,255,.7), transparent);
+  }
+  .btn {
+    background: var(--btn-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--hud-border);
+    color: var(--text-primary);
+    padding: 11px 14px;
+    border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+    display: flex; align-items: center; gap: 6px;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  .btn.active {
+    background: var(--btn-active-bg);
+    border-color: var(--btn-active-border);
+    color: var(--btn-active-text);
+    box-shadow: 0 4px 18px rgba(251, 191, 36, .35);
+  }
+  .btn.primary {
+    background: var(--btn-primary-bg);
+    border-color: var(--btn-primary-border);
+    color: white;
+  }
+  .btn-icon { font-size: 15px; line-height: 1; }
+  .btn-group {
+    display: flex; gap: 4px;
+    background: var(--btn-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--hud-border);
+    border-radius: 12px;
+    padding: 3px;
+  }
+  .btn-group .btn {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .btn-group .btn.active {
+    background: var(--btn-active-bg);
+    border-color: var(--btn-active-border);
+    color: var(--btn-active-text);
+  }
+
+  /* ===== Side panels ===== */
+  .help-panel {
+    position: absolute; top: 90px; left: 16px;
+    background: var(--hud-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--hud-border);
+    border-radius: 14px;
+    padding: 14px;
+    max-width: 240px;
+    z-index: 9;
+    font-size: 12px; line-height: 1.7;
+    transform: translateX(-110%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+  }
+  .help-panel.open { transform: translateX(0); }
+  .help-panel h3 { font-size: 13px; margin-bottom: 8px; color: var(--accent); }
+  .help-panel ul { list-style: none; padding: 0; }
+  .help-panel li { padding: 3px 0; color: var(--text-secondary); }
+  .help-panel li::before { content: '◆ '; color: var(--text-muted); }
+
+  /* ===== Modal ===== */
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(2, 6, 23, .8);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+    padding: 16px;
+  }
+  html[data-theme="light"] .modal-backdrop { background: rgba(203, 213, 225, .7); }
+  .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--modal-bg);
+    border: 1px solid var(--hud-border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    text-align: center;
+    max-width: 380px;
+    width: 100%;
+    transform: scale(.85);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal-backdrop.show .modal { transform: scale(1); }
+  .modal h2 {
+    font-size: 22px; margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .modal p { color: var(--text-secondary); font-size: 13px; margin-bottom: 18px; line-height: 1.7; }
+  .modal .btn { margin: 6px 4px; }
+  .modal .input-group {
+    margin: 14px 0;
+    text-align: right;
+  }
+  .modal .input-group label {
+    display: block; font-size: 12px; color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .modal input {
+    width: 100%;
+    background: rgba(15, 23, 42, .5);
+    border: 1px solid var(--hud-border);
+    color: var(--text-primary);
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    direction: ltr;
+    text-align: center;
+  }
+  html[data-theme="light"] .modal input {
+    background: rgba(241, 245, 249, .8);
+  }
+  .modal input:focus { outline: none; border-color: var(--accent); }
+
+  .menu-grid {
+    display: grid; gap: 10px; margin-top: 14px;
+  }
+  .menu-grid .btn { justify-content: center; padding: 14px; }
+  .room-link-box {
+    background: rgba(15, 23, 42, .4);
+    border: 1px dashed var(--hud-border);
+    border-radius: 10px;
+    padding: 10px;
+    margin: 12px 0;
+    word-break: break-all;
+    font-size: 11px;
+    color: var(--text-secondary);
+    direction: ltr;
+    text-align: left;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  html[data-theme="light"] .room-link-box { background: rgba(241, 245, 249, .6); }
+  .room-link-box:hover { border-color: var(--accent); color: var(--text-primary); }
+  .copy-hint { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ===== Toast ===== */
+  .toast {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(.9);
+    background: var(--hud-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--hud-border);
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-primary);
+    z-index: 50;
+    opacity: 0; pointer-events: none;
+    transition: all .25s ease;
+    max-width: 80%;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .toast.error { border-color: var(--toast-error); color: #fca5a5; }
+  .toast.info { border-color: var(--toast-info); color: #93c5fd; }
+  .toast.success { border-color: #22c55e; color: #86efac; }
+  html[data-theme="light"] .toast.error { color: #b91c1c; }
+  html[data-theme="light"] .toast.info { color: #1d4ed8; }
+  html[data-theme="light"] .toast.success { color: #166534; }
+
+  /* ===== Loading ===== */
+  #loading {
+    position: absolute; inset: 0;
+    background: var(--bg-gradient-2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 200;
+    transition: opacity .5s ease;
+  }
+  #loading.hide { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 50px; height: 50px;
+    border: 4px solid rgba(148, 163, 184, .2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 18px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { color: var(--text-secondary); font-size: 13px; }
+
+  /* ===== Status indicator ===== */
+  .connection-status {
+    position: absolute; top: 80px; right: 16px;
+    background: var(--turn-indicator-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--hud-border);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    z-index: 9;
+    display: none;
+  }
+  .connection-status.show { display: block; }
+  .connection-status .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: pulse 2s infinite;
+  }
+  .connection-status.connecting .dot { background: #fbbf24; }
+  .connection-status.error .dot { background: #ef4444; animation: none; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .3; }
+  }
+
+  /* ===== Contextual interaction coach ===== */
+  .mode-coach {
+    position: absolute;
+    left: 50%;
+    bottom: 88px;
+    transform: translateX(-50%);
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: min(92vw, 560px);
+    padding: 9px 14px;
+    border: 1px solid var(--hud-border);
+    border-radius: 999px;
+    background: var(--hud-bg);
+    color: var(--text-secondary);
+    box-shadow: 0 8px 28px rgba(2, 6, 23, .24);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    font-size: 12px;
+    line-height: 1.45;
+    pointer-events: none;
+    transition: border-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .mode-coach .mode-icon { font-size: 17px; color: var(--accent); }
+  .mode-coach strong { color: var(--text-primary); }
+  .mode-coach.wall-mode {
+    border-color: rgba(251, 191, 36, .65);
+    color: var(--text-primary);
+    transform: translateX(-50%) translateY(-2px);
+  }
+  #app.wall-mode canvas { cursor: crosshair; }
+
+  .btn:focus-visible {
+    outline: 3px solid rgba(251, 191, 36, .5);
+    outline-offset: 2px;
+  }
+  .btn .key-hint {
+    min-width: 18px;
+    padding: 1px 4px;
+    border: 1px solid currentColor;
+    border-radius: 5px;
+    font-size: 9px;
+    line-height: 1.35;
+    opacity: .65;
+    direction: ltr;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 480px) {
+    .player-card { min-width: 95px; padding: 8px 10px; }
+    .player-card .name { font-size: 12px; }
+    .player-card .walls-left { font-size: 10px; }
+    .title-center h1 { font-size: 14px; }
+    .btn { padding: 9px 11px; font-size: 11px; }
+    .btn-group .btn { padding: 7px 8px; font-size: 10px; }
+    .help-panel { max-width: 200px; top: 80px; left: 8px; font-size: 11px; }
+    .mode-coach { bottom: 116px; width: calc(100% - 24px); justify-content: center; font-size: 11px; }
+    .btn .key-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری بازی...</p>
+  </div>
+
+  <!-- 3D canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- Top HUD -->
+  <div class="hud-top">
+    <div class="player-card p1 active" id="card-p1">
+      <div class="name"><span class="dot"></span> <span id="name-p1">بازیکن سفید</span></div>
+      <div class="walls-left">دیوارها: <span id="walls-p1">10</span></div>
+      <div class="walls-bar"><div id="bar-p1" style="width:100%"></div></div>
+    </div>
+    <div class="title-center">
+      <h1>کووریدور 3D</h1>
+      <div class="turn-label" id="turn-text">نوبت: بازیکن سفید</div>
+      <div class="online-indicator offline" id="online-indicator">آفلاین · محلی</div>
+    </div>
+    <div class="player-card p2" id="card-p2">
+      <div class="name"><span class="dot"></span> <span id="name-p2">بازیکن مشکی</span></div>
+      <div class="walls-left">دیوارها: <span id="walls-p2">10</span></div>
+      <div class="walls-bar"><div id="bar-p2" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <!-- Connection status -->
+  <div class="connection-status" id="connection-status">
+    <span id="connection-text">در حال اتصال</span>
+    <span class="dot"></span>
+  </div>
+
+  <!-- Help panel -->
+  <div class="help-panel" id="help-panel">
+    <h3>راهنمای بازی</h3>
+    <ul>
+      <li>هر بازیکن 10 دیوار دارد</li>
+      <li>هدف: رسیدن به ردیف مقابل</li>
+      <li>روی خانه زرد برای حرکت بزن</li>
+      <li>شیارهای کم‌رنگ، محل‌های دیوار را همیشه نشان می‌دهند</li>
+      <li>افقی یا عمودی را بزن؛ خط طلایی معتبر و قرمز نامعتبر است</li>
+      <li>میان‌برها: 1 مهره، 2 افقی، 3 عمودی، Esc خروج</li>
+      <li>پرش از روی حریف مجاز است</li>
+      <li>با کشیدن انگشت، دوربین بچرخان</li>
+      <li>با دو انگشت، زوم کن</li>
+      <li>دکمه ☀/☾ برای تغییر تم</li>
+    </ul>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="mode-coach" id="mode-coach" role="status" aria-live="polite">
+    <span class="mode-icon" id="mode-coach-icon">♟</span>
+    <span id="mode-coach-text"><strong>حرکت مهره:</strong> یکی از خانه‌های روشن را انتخاب کنید.</span>
+  </div>
+  <div class="hud-bottom">
+    <button class="btn" id="btn-help">
+      <span class="btn-icon">❔</span> راهنما
+    </button>
+    <div class="btn-group">
+      <button class="btn active" id="btn-mode-pawn" data-mode="move" aria-pressed="true" title="حالت حرکت مهره (کلید 1)">
+        <span class="btn-icon">♟</span> مهره <span class="key-hint">1</span>
+      </button>
+      <button class="btn" id="btn-mode-wall-h" data-mode="wall-h" aria-pressed="false" title="قرار دادن دیوار افقی (کلید 2)">
+        <span class="btn-icon">═</span> دیوار افقی <span class="key-hint">2</span>
+      </button>
+      <button class="btn" id="btn-mode-wall-v" data-mode="wall-v" aria-pressed="false" title="قرار دادن دیوار عمودی (کلید 3)">
+        <span class="btn-icon">║</span> دیوار عمودی <span class="key-hint">3</span>
+      </button>
+    </div>
+    <button class="btn" id="btn-rotate">
+      <span class="btn-icon">⟳</span> چرخش
+    </button>
+    <button class="btn" id="btn-theme">
+      <span class="btn-icon" id="theme-icon">☾</span>
+    </button>
+    <button class="btn primary" id="btn-menu">
+      <span class="btn-icon">☰</span> منو
+    </button>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- User registration modal (shown first time) -->
+  <div class="modal-backdrop show" id="register-modal">
+    <div class="modal">
+      <h2>به کووریدور خوش آمدید</h2>
+      <p>برای شروع، نام خود را وارد کنید. شماره همراه اختیاری است و فقط روی همین دستگاه می‌ماند.</p>
+      <div class="input-group">
+        <label>نام شما</label>
+        <input id="register-name" placeholder="مثلاً: علی" autocomplete="off" maxlength="30" />
+      </div>
+      <div class="input-group">
+        <label>شماره همراه <span style="color:var(--text-muted)">(اختیاری)</span></label>
+        <input id="register-phone" placeholder="مثلاً: 09123456789" autocomplete="off" inputmode="numeric" maxlength="11" />
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+        <button class="btn primary" id="register-confirm">
+          <span class="btn-icon">✓</span> شروع بازی
+        </button>
+      </div>
+      <div style="font-size: 10px; color: var(--text-muted); margin-top: 10px;">
+        اطلاعات فقط روی دستگاه شما ذخیره می‌شود.
+      </div>
+    </div>
+  </div>
+
+  <!-- Start menu modal -->
+  <div class="modal-backdrop" id="menu-modal">
+    <div class="modal">
+      <h2>کووریدور سه‌بعدی</h2>
+      <p>یکی از حالت‌های بازی را انتخاب کنید. برای بازی آنلاین تصادفی، سیستم به‌صورت خودکار یک حریف برای شما پیدا می‌کند.</p>
+      <div class="menu-grid">
+        <button class="btn primary" id="menu-local">
+          <span class="btn-icon">📱</span> بازی محلی (دو نفر، یک دستگاه)
+        </button>
+        <button class="btn" id="menu-random">
+          <span class="btn-icon">🎲</span> بازی آنلاین تصادفی
+        </button>
+        <button class="btn" id="menu-create">
+          <span class="btn-icon">🔗</span> ساخت بازی آنلاین (با لینک)
+        </button>
+        <button class="btn" id="menu-join">
+          <span class="btn-icon">🎮</span> ورود به بازی آنلاین
+        </button>
+      </div>
+      <div style="margin-top: 14px; font-size: 11px; color: var(--text-muted); text-align: center;">
+        بازیکن: <span id="menu-player-name" style="color: var(--accent); font-weight: 700;">—</span>
+        <span style="color: var(--text-muted); margin: 0 6px;">|</span>
+        <a href="#" id="menu-change-user" style="color: var(--accent); text-decoration: none;">تغییر</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Random match modal -->
+  <div class="modal-backdrop" id="random-modal">
+    <div class="modal">
+      <h2>بازی آنلاین تصادفی</h2>
+      <p id="random-status">در حال جستجوی حریف...</p>
+      <div style="display: flex; justify-content: center; margin: 20px 0;">
+        <div class="spinner"></div>
+      </div>
+      <div id="random-detail" style="font-size: 11px; color: var(--text-secondary); text-align: center;">
+        لطفاً صبر کنید. این فرآیند ممکن است چند ثانیه طول بکشد.
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+        <button class="btn" id="random-cancel">
+          <span class="btn-icon">✕</span> انصراف
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create game modal -->
+  <div class="modal-backdrop" id="create-modal">
+    <div class="modal">
+      <h2>ساخت بازی آنلاین</h2>
+      <p>لینک زیر را برای حریف خود بفرستید. وقتی او وارد شد، بازی شروع می‌شود.</p>
+      <div class="room-link-box" id="room-link-text">در حال ساخت لینک...</div>
+      <div class="copy-hint">برای کپی، روی لینک بزنید</div>
+      <div id="waiting-text" style="color: var(--text-secondary); font-size: 12px; margin-top: 8px;">
+        ⏳ منتظر ورود حریف...
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+        <button class="btn" id="create-copy">
+          <span class="btn-icon">📋</span> کپی لینک
+        </button>
+        <button class="btn" id="create-cancel">
+          <span class="btn-icon">✕</span> انصراف
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join game modal -->
+  <div class="modal-backdrop" id="join-modal">
+    <div class="modal">
+      <h2>ورود به بازی آنلاین</h2>
+      <p>کد بازی را از حریف خود بگیرید و وارد کنید.</p>
+      <div class="input-group">
+        <label>کد بازی یا لینک کامل</label>
+        <input id="join-input" placeholder="مثلاً: ABC123 یا لینک کامل" autocomplete="off" />
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+        <button class="btn primary" id="join-confirm">
+          <span class="btn-icon">🎮</span> ورود به بازی
+        </button>
+        <button class="btn" id="join-cancel">
+          <span class="btn-icon">✕</span> انصراف
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game over modal -->
+  <div class="modal-backdrop" id="gameover-modal">
+    <div class="modal">
+      <h2 id="gameover-title">پایان بازی</h2>
+      <p id="gameover-text">برنده: بازیکن سفید</p>
+      <div style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+        <button class="btn primary" id="gameover-restart">
+          <span class="btn-icon">↻</span> بازی مجدد
+        </button>
+        <button class="btn" id="gameover-menu">
+          <span class="btn-icon">☰</span> منو
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PeerJS for online multiplayer -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   Game constants
+   ============================================================ */
+const BOARD_SIZE = 9;
+const CELL = 1.0;
+const WALL_THICKNESS = 0.12;
+const WALL_HEIGHT = 0.7;
+const PAWN_HEIGHT = 0.55;
+const PAWN_RADIUS = 0.28;
+const TOTAL_WALLS = 10;
+
+// Theme palettes for the 3D scene
+const THEMES = {
+  dark: {
+    bg: 0x0f172a,
+    fog: 0x0f172a,
+    boardLight: 0xf1f5f9,
+    boardDark: 0xcbd5e1,
+    boardEdge: 0x475569,
+    pawn1: 0xf8fafc,
+    pawn2: 0x1e293b,
+    wall1: 0xfbbf24,
+    wall2: 0x64748b,
+    highlight: 0xfbbf24,
+    wallHlOk: 0x22c55e,
+    wallHlNo: 0xef4444,
+    ground: 0x0b1220,
+    ring: 0x334155,
+    goal1: 0xfbbf24,
+    goal2: 0x6366f1,
+    ambient: 0xffffff,
+    ambientIntensity: 0.55,
+    keyLight: 0xffffff,
+    keyLightIntensity: 1.1,
+    fillLight: 0xfbbf24,
+    rimLight: 0x6366f1,
+  },
+  light: {
+    /* LIGHT THEME: WHITE ground + BLACK board (per user request) */
+    bg: 0xe2e8f0,
+    fog: 0xe2e8f0,
+    boardLight: 0x1f2937,   /* dark cell - black-ish */
+    boardDark: 0x111827,    /* darker cell - near black */
+    boardEdge: 0x475569,    /* slate-600 edge */
+    pawn1: 0xffffff,        /* white pawn stands out on black board */
+    pawn2: 0x0f172a,        /* black pawn */
+    wall1: 0xea580c,        /* orange wall (player 1) */
+    wall2: 0x64748b,        /* slate wall (player 2) */
+    highlight: 0xea580c,    /* orange move markers */
+    wallHlOk: 0x16a34a,     /* green = valid */
+    wallHlNo: 0xdc2626,    /* red = invalid */
+    ground: 0xffffff,       /* WHITE ground (per user request) */
+    ring: 0x94a3b8,        /* light slate rings */
+    goal1: 0xea580c,        /* orange goal line for p1 */
+    goal2: 0x6366f1,        /* indigo goal line for p2 */
+    ambient: 0xffffff,
+    ambientIntensity: 0.95,
+    keyLight: 0xffffff,
+    keyLightIntensity: 1.0,
+    fillLight: 0xfbbf24,
+    rimLight: 0x6366f1,
+  }
+};
+
+let currentTheme = localStorage.getItem('quoridor-theme') || 'dark';
+let COLORS = THEMES[currentTheme];
+
+/* ============================================================
+   Game state
+   ============================================================ */
+const state = {
+  pawns: [
+    { row: 0, col: 4 },  // P1
+    { row: 8, col: 4 },  // P2
+  ],
+  walls: [],
+  wallsLeft: [TOTAL_WALLS, TOTAL_WALLS],
+  current: 0,
+  mode: 'move',            // 'move' | 'wall-h' | 'wall-v'
+  over: false,
+  winner: null,
+  // user info
+  user: { name: '', phone: '' },
+  opponentName: '',
+  // multiplayer
+  online: false,
+  isHost: false,
+  myPlayer: 0,             // 0 (host = white) or 1 (guest = black)
+  peer: null,
+  conn: null,
+  randomMatch: false,      // true if in random matchmaking flow
+};
+
+const wallGridH = Array.from({ length: BOARD_SIZE - 1 }, () => Array(BOARD_SIZE).fill(false));
+const wallGridV = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE - 1).fill(false));
+
+function wallAt(r, c, orientation) {
+  if (orientation === 'h') return wallGridH[r] && wallGridH[r][c];
+  return wallGridV[r] && wallGridV[r][c];
+}
+function setWall(r, c, orientation, val) {
+  if (orientation === 'h') wallGridH[r][c] = val;
+  else wallGridV[r][c] = val;
+}
+
+/* ============================================================
+   Three.js scene setup
+   ============================================================ */
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(COLORS.bg);
+scene.fog = new THREE.Fog(COLORS.fog, 18, 35);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 12, 11);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 8;
+controls.maxDistance = 22;
+controls.maxPolarAngle = Math.PI / 2.15;
+controls.minPolarAngle = Math.PI / 6;
+controls.target.set(0, 0, 0);
+controls.enablePan = false;
+
+/* ---------- Lighting ---------- */
+let ambient, keyLight, rimLight, fillLight;
+function setupLights() {
+  if (ambient) scene.remove(ambient);
+  if (keyLight) scene.remove(keyLight);
+  if (rimLight) scene.remove(rimLight);
+  if (fillLight) scene.remove(fillLight);
+
+  ambient = new THREE.AmbientLight(COLORS.ambient, COLORS.ambientIntensity);
+  scene.add(ambient);
+
+  keyLight = new THREE.DirectionalLight(COLORS.keyLight, COLORS.keyLightIntensity);
+  keyLight.position.set(6, 14, 6);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(2048, 2048);
+  keyLight.shadow.camera.left = -10;
+  keyLight.shadow.camera.right = 10;
+  keyLight.shadow.camera.top = 10;
+  keyLight.shadow.camera.bottom = -10;
+  keyLight.shadow.camera.near = 1;
+  keyLight.shadow.camera.far = 30;
+  keyLight.shadow.bias = -0.0005;
+  scene.add(keyLight);
+
+  rimLight = new THREE.DirectionalLight(COLORS.rimLight, 0.4);
+  rimLight.position.set(-6, 4, -8);
+  scene.add(rimLight);
+
+  fillLight = new THREE.PointLight(COLORS.fillLight, 0.6, 25);
+  fillLight.position.set(0, 8, 0);
+  scene.add(fillLight);
+}
+setupLights();
+
+/* ---------- Ground ---------- */
+let ground;
+const rings = [];
+function setupGround() {
+  if (ground) scene.remove(ground);
+  const groundGeo = new THREE.CircleGeometry(20, 64);
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: COLORS.ground, roughness: 0.95, metalness: 0.0,
+  });
+  ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.05;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // remove old rings
+  for (const r of rings) scene.remove(r);
+  rings.length = 0;
+  for (let i = 1; i <= 3; i++) {
+    const ringGeo = new THREE.RingGeometry(6 + i * 1.5, 6.05 + i * 1.5, 64);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: COLORS.ring, transparent: true, opacity: 0.35 - i * 0.08, side: THREE.DoubleSide,
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = -0.04;
+    scene.add(ring);
+    rings.push(ring);
+  }
+}
+setupGround();
+
+/* ============================================================
+   Board construction
+   ============================================================ */
+const boardGroup = new THREE.Group();
+scene.add(boardGroup);
+
+const offset = -(BOARD_SIZE - 1) * CELL / 2;
+function gridToWorld(row, col) {
+  return { x: offset + col * CELL, z: offset + row * CELL };
+}
+
+const cellMeshes = [];
+const cellMaterials = [];
+for (let r = 0; r < BOARD_SIZE; r++) {
+  cellMeshes[r] = [];
+  cellMaterials[r] = [];
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    const isLight = (r + c) % 2 === 0;
+    const mat = new THREE.MeshStandardMaterial({
+      color: isLight ? COLORS.boardLight : COLORS.boardDark,
+      roughness: 0.55, metalness: 0.1,
+    });
+    cellMaterials[r][c] = { mat, isLight };
+    const geo = new THREE.BoxGeometry(CELL * 0.96, 0.12, CELL * 0.96);
+    const mesh = new THREE.Mesh(geo, mat);
+    const pos = gridToWorld(r, c);
+    mesh.position.set(pos.x, 0.06, pos.z);
+    mesh.userData = { type: 'cell', row: r, col: c };
+    mesh.receiveShadow = true;
+    boardGroup.add(mesh);
+    cellMeshes[r][c] = mesh;
+  }
+}
+
+let frame;
+function setupFrame() {
+  if (frame) scene.remove(frame);
+  const frameGeo = new THREE.BoxGeometry(BOARD_SIZE * CELL + 0.4, 0.2, BOARD_SIZE * CELL + 0.4);
+  const frameMat = new THREE.MeshStandardMaterial({
+    color: COLORS.boardEdge, roughness: 0.4, metalness: 0.5,
+  });
+  frame = new THREE.Mesh(frameGeo, frameMat);
+  frame.position.y = 0.05;
+  frame.receiveShadow = true;
+  scene.add(frame);
+}
+setupFrame();
+
+// Goal indicators
+let goalP1, goalP2;
+function setupGoals() {
+  if (goalP1) scene.remove(goalP1);
+  if (goalP2) scene.remove(goalP2);
+  goalP1 = makeGoalRow(BOARD_SIZE - 1, COLORS.goal1);
+  goalP2 = makeGoalRow(0, COLORS.goal2);
+}
+function makeGoalRow(row, color) {
+  const geo = new THREE.PlaneGeometry(BOARD_SIZE * CELL, 0.4);
+  const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+  const plane = new THREE.Mesh(geo, mat);
+  plane.rotation.x = -Math.PI / 2;
+  const pos = gridToWorld(row, Math.floor(BOARD_SIZE / 2));
+  plane.position.set(pos.x, 0.13, pos.z + (row === 0 ? -CELL * 0.55 : CELL * 0.55));
+  scene.add(plane);
+  return plane;
+}
+setupGoals();
+
+/* ---------- Cell coordinate labels (numbers + letters) ---------- */
+const labelGroup = new THREE.Group();
+scene.add(labelGroup);
+function setupLabels() {
+  while (labelGroup.children.length) {
+    const m = labelGroup.children[0];
+    labelGroup.remove(m);
+    if (m.material) m.material.dispose();
+    if (m.material.map) m.material.map.dispose();
+  }
+  // Create a single canvas texture for all labels (column letters + row numbers)
+  const labelColor = currentTheme === 'light' ? '#57534e' : '#94a3b8';
+
+  // Column labels (A-I) along the top of the board
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    const letter = String.fromCharCode(65 + c); // A, B, C...
+    const sprite = makeTextSprite(letter, labelColor);
+    const pos = gridToWorld(-0.7, c);
+    sprite.position.set(pos.x, 0.13, pos.z);
+    sprite.scale.set(0.4, 0.4, 1);
+    labelGroup.add(sprite);
+  }
+  // Row labels (1-9) along the left side
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    const num = String(r + 1);
+    const sprite = makeTextSprite(num, labelColor);
+    const pos = gridToWorld(r, -0.7);
+    sprite.position.set(pos.x, 0.13, pos.z);
+    sprite.scale.set(0.4, 0.4, 1);
+    labelGroup.add(sprite);
+  }
+}
+function makeTextSprite(text, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.font = 'bold 80px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 64, 64);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  return new THREE.Sprite(material);
+}
+setupLabels();
+
+/* ============================================================
+   Pawns
+   ============================================================ */
+const pawnGroup = new THREE.Group();
+scene.add(pawnGroup);
+
+let pawnMaterials1 = [], pawnMaterials2 = [];
+function createPawn(color) {
+  const group = new THREE.Group();
+  const materials = [];
+
+  const baseGeo = new THREE.CylinderGeometry(PAWN_RADIUS * 1.15, PAWN_RADIUS * 1.25, 0.1, 24);
+  const baseMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3, metalness: 0.8 });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.position.y = 0.05;
+  base.castShadow = true;
+  group.add(base);
+  materials.push(baseMat);
+
+  const bodyGeo = new THREE.CylinderGeometry(PAWN_RADIUS, PAWN_RADIUS * 0.75, PAWN_HEIGHT, 24);
+  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.6 });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = PAWN_HEIGHT / 2 + 0.1;
+  body.castShadow = true;
+  group.add(body);
+  materials.push(bodyMat);
+
+  const headGeo = new THREE.SphereGeometry(PAWN_RADIUS * 0.55, 24, 24);
+  const headMat = new THREE.MeshStandardMaterial({ color, roughness: 0.2, metalness: 0.7 });
+  const head = new THREE.Mesh(headGeo, headMat);
+  head.position.y = PAWN_HEIGHT + 0.15;
+  head.castShadow = true;
+  group.add(head);
+  materials.push(headMat);
+
+  const glowGeo = new THREE.RingGeometry(PAWN_RADIUS * 1.3, PAWN_RADIUS * 1.7, 32);
+  const glowMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, side: THREE.DoubleSide });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.13;
+  group.add(glow);
+  materials.push(glowMat);
+
+  group.userData = { materials };
+  return group;
+}
+
+let pawnMeshes = [createPawn(COLORS.pawn1), createPawn(COLORS.pawn2)];
+pawnGroup.add(...pawnMeshes);
+
+function rebuildPawns() {
+  pawnGroup.remove(pawnMeshes[0]);
+  pawnGroup.remove(pawnMeshes[1]);
+  pawnMeshes = [createPawn(COLORS.pawn1), createPawn(COLORS.pawn2)];
+  pawnGroup.add(...pawnMeshes);
+  updatePawnPosition(0);
+  updatePawnPosition(1);
+}
+
+function updatePawnPosition(player) {
+  const { row, col } = state.pawns[player];
+  const pos = gridToWorld(row, col);
+  pawnMeshes[player].position.set(pos.x, 0.12, pos.z);
+}
+updatePawnPosition(0);
+updatePawnPosition(1);
+
+/* ============================================================
+   Walls
+   ============================================================ */
+const wallGroup = new THREE.Group();
+scene.add(wallGroup);
+
+let wallMaterials;
+function setupWallMaterials() {
+  wallMaterials = [
+    new THREE.MeshStandardMaterial({ color: COLORS.wall1, roughness: 0.35, metalness: 0.5 }),
+    new THREE.MeshStandardMaterial({ color: COLORS.wall2, roughness: 0.35, metalness: 0.5 }),
+  ];
+}
+setupWallMaterials();
+
+function makeWallMesh(row, col, orientation, owner) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(CELL * 2.0 * 0.98, WALL_HEIGHT, WALL_THICKNESS),
+    wallMaterials[owner]
+  );
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  const pos = gridToWorld(row, col);
+  if (orientation === 'h') {
+    mesh.position.set(pos.x + CELL / 2, WALL_HEIGHT / 2 + 0.12, pos.z + CELL / 2);
+  } else {
+    mesh.rotation.y = Math.PI / 2;
+    mesh.position.set(pos.x + CELL / 2, WALL_HEIGHT / 2 + 0.12, pos.z + CELL / 2);
+  }
+  mesh.userData = { type: 'wall', row, col, orientation, owner };
+  return mesh;
+}
+
+function placeWall(row, col, orientation, owner, animate = true) {
+  const mesh = makeWallMesh(row, col, orientation, owner);
+  const finalY = mesh.position.y;
+  if (animate) {
+    mesh.position.y = finalY + 2;
+    mesh.scale.y = 0.1;
+  }
+  wallGroup.add(mesh);
+  state.walls.push({ row, col, orientation, owner, mesh });
+
+  setWall(row, col, orientation, true);
+  if (orientation === 'h') setWall(row, col + 1, 'h', true);
+  else setWall(row + 1, col, 'v', true);
+
+  if (animate) animateWallDrop(mesh, finalY);
+}
+
+function animateWallDrop(mesh, finalY) {
+  const startY = mesh.position.y;
+  const startScale = mesh.scale.y;
+  const dur = 320;
+  const t0 = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - t, 3);
+    mesh.position.y = startY + (finalY - startY) * e;
+    mesh.scale.y = startScale + (1 - startScale) * e;
+    if (t < 1) requestAnimationFrame(step);
+    else { mesh.position.y = finalY; mesh.scale.y = 1; }
+  }
+  requestAnimationFrame(step);
+}
+
+function clearWalls() {
+  for (const w of state.walls) {
+    wallGroup.remove(w.mesh);
+    w.mesh.geometry.dispose();
+  }
+  state.walls.length = 0;
+  for (let r = 0; r < BOARD_SIZE - 1; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) wallGridH[r][c] = false;
+  }
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE - 1; c++) wallGridV[r][c] = false;
+  }
+}
+
+/* ============================================================
+   Wall placement preview (ghost) + persistent grid preview
+   ============================================================ */
+let ghostMesh = null;
+const wallSlotGroup = new THREE.Group(); // always-visible wall slots (both orientations)
+scene.add(wallSlotGroup);
+
+function clearWallSlots() {
+  while (wallSlotGroup.children.length) {
+    const m = wallSlotGroup.children[0];
+    wallSlotGroup.remove(m);
+    m.geometry.dispose();
+    m.material.dispose();
+  }
+}
+
+// Draw a quiet, always-visible placement grid. In wall mode only the selected
+// orientation becomes bright and interactive. Separating visuals from hitboxes
+// prevents the two crossing orientations from competing for the same click.
+function showWallSlots(activeOrientation = null) {
+  clearWallSlots();
+  const grooveColor = 0xd97706;
+  const grooveInner = 0xfbbf24;
+
+  for (let r = 0; r <= BOARD_SIZE - 2; r++) {
+    for (let c = 0; c <= BOARD_SIZE - 2; c++) {
+      for (const orientation of ['h', 'v']) {
+        if (wallAt(r, c, orientation)) continue;
+        const can = canPlaceWall(r, c, orientation);
+        const isActive = (orientation === activeOrientation);
+        const pos = gridToWorld(r, c);
+        const length = CELL * 1.82;
+        const thickness = isActive ? 0.115 : 0.075;
+        const geo = new THREE.BoxGeometry(length, isActive ? 0.045 : 0.03, thickness);
+        const mat = new THREE.MeshStandardMaterial({
+          color: isActive ? (can ? 0xfbbf24 : 0xef4444) : grooveColor,
+          emissive: isActive ? (can ? 0x5b3700 : 0x4a0b0b) : 0x000000,
+          emissiveIntensity: isActive ? 0.75 : 0,
+          roughness: 0.72,
+          metalness: 0.12,
+          transparent: true,
+          opacity: isActive ? (can ? 0.98 : 0.34) : 0.52,
+        });
+        const slot = new THREE.Mesh(geo, mat);
+        const y = isActive ? 0.17 : 0.145;
+        if (orientation === 'h') {
+          slot.position.set(pos.x + CELL / 2, y, pos.z + CELL / 2);
+        } else if (orientation === 'h' || activeOrientation) {
+          slot.rotation.y = Math.PI / 2;
+          slot.position.set(pos.x + CELL / 2, y, pos.z + CELL / 2);
+        }
+        slot.userData = { type: 'slot', row: r, col: c, orientation, selectable: isActive, valid: can };
+        slot.renderOrder = isActive ? 3 : 1;
+        wallSlotGroup.add(slot);
+
+        // A wider invisible hitbox makes placement comfortable on touch screens.
+        if (isActive) {
+          const hitGeo = new THREE.BoxGeometry(CELL * 1.94, 0.16, 0.28);
+          const hitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+          const hitbox = new THREE.Mesh(hitGeo, hitMat);
+          if (orientation === 'h') {
+            hitbox.position.set(pos.x + CELL / 2, 0.23, pos.z + CELL / 2);
+          } else {
+            hitbox.rotation.y = Math.PI / 2;
+            hitbox.position.set(pos.x + CELL / 2, 0.23, pos.z + CELL / 2);
+          }
+          hitbox.userData = { type: 'slot-hit', row: r, col: c, orientation, selectable: true, valid: can };
+          wallSlotGroup.add(hitbox);
+        } else {
+          // A short center notch keeps the intersection grid readable at a glance.
+          const notchGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.018, 16);
+          const notchMat = new THREE.MeshBasicMaterial({ color: grooveInner, transparent: true, opacity: 0.62 });
+          const notch = new THREE.Mesh(notchGeo, notchMat);
+          notch.position.set(pos.x + CELL / 2, 0.14, pos.z + CELL / 2);
+          notch.userData = { type: 'slot-decoration', selectable: false };
+          wallSlotGroup.add(notch);
+        }
+      }
+    }
+  }
+}
+
+function updateGhost(intersect, forcedOrientation) {
+  if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+  if (!intersect) return;
+  const { row, col } = intersect;
+  const orientation = forcedOrientation || (state.mode === 'wall-h' ? 'h' : 'v');
+  if (!canPlaceWallPreview(row, col, orientation)) return;
+  const canPlace = canPlaceWall(row, col, orientation);
+  const geo = new THREE.BoxGeometry(CELL * 2.0 * 0.98, WALL_HEIGHT, WALL_THICKNESS);
+  const mat = new THREE.MeshBasicMaterial({
+    color: canPlace ? COLORS.wallHlOk : COLORS.wallHlNo,
+    transparent: true, opacity: 0.6,
+  });
+  ghostMesh = new THREE.Mesh(geo, mat);
+  const pos = gridToWorld(row, col);
+  if (orientation === 'h') {
+    ghostMesh.position.set(pos.x + CELL / 2, WALL_HEIGHT / 2 + 0.12, pos.z + CELL / 2);
+  } else {
+    ghostMesh.rotation.y = Math.PI / 2;
+    ghostMesh.position.set(pos.x + CELL / 2, WALL_HEIGHT / 2 + 0.12, pos.z + CELL / 2);
+  }
+  wallGroup.add(ghostMesh);
+}
+
+function canPlaceWallPreview(row, col, orientation) {
+  return row >= 0 && row <= BOARD_SIZE - 2 && col >= 0 && col <= BOARD_SIZE - 2;
+}
+
+function canPlaceWall(row, col, orientation) {
+  if (!canPlaceWallPreview(row, col, orientation)) return false;
+  if (wallAt(row, col, orientation)) return false;
+  if (orientation === 'h' && wallAt(row, col + 1, 'h')) return false;
+  if (orientation === 'v' && wallAt(row + 1, col, 'v')) return false;
+  if (orientation === 'h') {
+    if (wallAt(row, col, 'v') && wallAt(row + 1, col, 'v')) return false;
+  } else {
+    if (wallAt(row, col, 'h') && wallAt(row, col + 1, 'h')) return false;
+  }
+  return !wouldBlockPlayer(row, col, orientation, 0) && !wouldBlockPlayer(row, col, orientation, 1);
+}
+
+function wouldBlockPlayer(row, col, orientation, player) {
+  setWall(row, col, orientation, true);
+  if (orientation === 'h') setWall(row, col + 1, 'h', true);
+  else setWall(row + 1, col, 'v', true);
+  const ok = canReachGoal(player);
+  setWall(row, col, orientation, false);
+  if (orientation === 'h') setWall(row, col + 1, 'h', false);
+  else setWall(row + 1, col, 'v', false);
+  return !ok;
+}
+
+/* ============================================================
+   Movement rules
+   ============================================================ */
+function canMoveTo(fromRow, fromCol, toRow, toCol) {
+  if (toRow < 0 || toRow >= BOARD_SIZE || toCol < 0 || toCol >= BOARD_SIZE) return false;
+  const dr = toRow - fromRow, dc = toCol - fromCol;
+  if (Math.abs(dr) + Math.abs(dc) !== 1) return canJumpTo(fromRow, fromCol, toRow, toCol);
+  if (dr === -1) { if (wallAt(fromRow - 1, fromCol, 'h')) return false; }
+  else if (dr === 1) { if (wallAt(fromRow, fromCol, 'h')) return false; }
+  else if (dc === -1) { if (wallAt(fromRow, fromCol - 1, 'v')) return false; }
+  else if (dc === 1) { if (wallAt(fromRow, fromCol, 'v')) return false; }
+  const otherPlayer = 1 - state.current;
+  if (state.pawns[otherPlayer].row === toRow && state.pawns[otherPlayer].col === toCol) return false;
+  return true;
+}
+
+function canJumpTo(fromRow, fromCol, toRow, toCol) {
+  const otherPlayer = 1 - state.current;
+  const opp = state.pawns[otherPlayer];
+  const dr = toRow - fromRow, dc = toCol - fromCol;
+  if (Math.abs(dr) + Math.abs(dc) !== 2) return false;
+  if (dr !== 0 && dc !== 0) return false;
+  const midR = fromRow + dr / 2, midC = fromCol + dc / 2;
+  if (opp.row !== midR || opp.col !== midC) return false;
+  if (dr !== 0) {
+    const stepDir = dr > 0 ? 1 : -1;
+    if (stepDir === 1 && wallAt(fromRow, fromCol, 'h')) return false;
+    if (stepDir === -1 && wallAt(fromRow - 1, fromCol, 'h')) return false;
+  } else {
+    const stepDir = dc > 0 ? 1 : -1;
+    if (stepDir === 1 && wallAt(fromRow, fromCol, 'v')) return false;
+    if (stepDir === -1 && wallAt(fromRow, fromCol - 1, 'v')) return false;
+  }
+  if (dr !== 0) {
+    const stepDir = dr > 0 ? 1 : -1;
+    if (stepDir === 1 && wallAt(midR, midC, 'h')) return false;
+    if (stepDir === -1 && wallAt(midR - 1, midC, 'h')) return false;
+  } else {
+    const stepDir = dc > 0 ? 1 : -1;
+    if (stepDir === 1 && wallAt(midR, midC, 'v')) return false;
+    if (stepDir === -1 && wallAt(midR, midC - 1, 'v')) return false;
+  }
+  if (toRow < 0 || toRow >= BOARD_SIZE || toCol < 0 || toCol >= BOARD_SIZE) return false;
+  return true;
+}
+
+function getValidMoves(player) {
+  const { row, col } = state.pawns[player];
+  const moves = [];
+  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  for (const [dr, dc] of dirs) {
+    const nr = row + dr, nc = col + dc;
+    if (canMoveTo(row, col, nr, nc)) moves.push({ row: nr, col: nc });
+    const jr = row + dr * 2, jc = col + dc * 2;
+    if (canJumpTo(row, col, jr, jc)) {
+      if (!moves.some(m => m.row === jr && m.col === jc)) moves.push({ row: jr, col: jc });
+    }
+  }
+  const otherPlayer = 1 - player;
+  const opp = state.pawns[otherPlayer];
+  const dirsOpp = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  for (const [dr, dc] of dirsOpp) {
+    if (opp.row === row + dr && opp.col === col + dc) {
+      const blocked = !canJumpTo(row, col, row + dr * 2, col + dc * 2);
+      if (blocked) {
+        const diag1 = { row: row + dr + (dc), col: col + dc + (dr) };
+        const diag2 = { row: row + dr - (dc), col: col + dc - (dr) };
+        for (const t of [diag1, diag2]) {
+          if (t.row < 0 || t.row >= BOARD_SIZE || t.col < 0 || t.col >= BOARD_SIZE) continue;
+          const oppR = opp.row, oppC = opp.col;
+          const ddr = t.row - oppR, ddc = t.col - oppC;
+          if (Math.abs(ddr) + Math.abs(ddc) !== 1) continue;
+          let wallBetween = false;
+          if (ddr === 1) wallBetween = wallAt(oppR, oppC, 'h');
+          else if (ddr === -1) wallBetween = wallAt(oppR - 1, oppC, 'h');
+          else if (ddc === 1) wallBetween = wallAt(oppR, oppC, 'v');
+          else if (ddc === -1) wallBetween = wallAt(oppR, oppC - 1, 'v');
+          if (wallBetween) continue;
+          let wallToOpp = false;
+          if (dr === 1) wallToOpp = wallAt(row, col, 'h');
+          else if (dr === -1) wallToOpp = wallAt(row - 1, col, 'h');
+          else if (dc === 1) wallToOpp = wallAt(row, col, 'v');
+          else if (dc === -1) wallToOpp = wallAt(row, col - 1, 'v');
+          if (wallToOpp) continue;
+          if (!moves.some(m => m.row === t.row && m.col === t.col)) moves.push(t);
+        }
+      }
+    }
+  }
+  return moves;
+}
+
+function canReachGoal(player) {
+  const start = state.pawns[player];
+  const goalRow = player === 0 ? BOARD_SIZE - 1 : 0;
+  const visited = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(false));
+  const queue = [[start.row, start.col]];
+  visited[start.row][start.col] = true;
+  while (queue.length) {
+    const [r, c] = queue.shift();
+    if (r === goalRow) return true;
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) continue;
+      if (visited[nr][nc]) continue;
+      if (dr === -1 && wallAt(r - 1, c, 'h')) continue;
+      if (dr === 1 && wallAt(r, c, 'h')) continue;
+      if (dc === -1 && wallAt(r, c - 1, 'v')) continue;
+      if (dc === 1 && wallAt(r, c, 'v')) continue;
+      visited[nr][nc] = true;
+      queue.push([nr, nc]);
+    }
+  }
+  return false;
+}
+
+/* ============================================================
+   Highlight valid moves + current pawn highlight
+   ============================================================ */
+const highlightGroup = new THREE.Group();
+scene.add(highlightGroup);
+const currentCellGroup = new THREE.Group();
+scene.add(currentCellGroup);
+
+function clearHighlights() {
+  while (highlightGroup.children.length) {
+    const m = highlightGroup.children[0];
+    highlightGroup.remove(m);
+    m.geometry.dispose();
+    m.material.dispose();
+  }
+}
+
+function showMoveHighlights() {
+  clearHighlights();
+  const moves = getValidMoves(state.current);
+  for (const m of moves) {
+    const geo = new THREE.CylinderGeometry(0.32, 0.32, 0.04, 24);
+    const mat = new THREE.MeshBasicMaterial({ color: COLORS.highlight, transparent: true, opacity: 0.75 });
+    const dot = new THREE.Mesh(geo, mat);
+    const pos = gridToWorld(m.row, m.col);
+    dot.position.set(pos.x, 0.15, pos.z);
+    dot.userData = { type: 'highlight', row: m.row, col: m.col };
+    highlightGroup.add(dot);
+
+    const pulseGeo = new THREE.RingGeometry(0.34, 0.45, 24);
+    const pulseMat = new THREE.MeshBasicMaterial({ color: COLORS.highlight, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+    const pulse = new THREE.Mesh(pulseGeo, pulseMat);
+    pulse.rotation.x = -Math.PI / 2;
+    pulse.position.set(pos.x, 0.14, pos.z);
+    pulse.userData = { type: 'pulse', row: m.row, col: m.col };
+    highlightGroup.add(pulse);
+  }
+}
+
+function showCurrentCellHighlight() {
+  while (currentCellGroup.children.length) {
+    const m = currentCellGroup.children[0];
+    currentCellGroup.remove(m);
+    m.geometry.dispose();
+    m.material.dispose();
+  }
+  // Highlight the cell under the current player's pawn
+  const { row, col } = state.pawns[state.current];
+  const cellColor = state.current === 0 ? COLORS.pawn1 : COLORS.pawn2;
+  const ringGeo = new THREE.RingGeometry(0.45, 0.55, 32);
+  const ringMat = new THREE.MeshBasicMaterial({ color: cellColor, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  const pos = gridToWorld(row, col);
+  ring.position.set(pos.x, 0.16, pos.z);
+  currentCellGroup.add(ring);
+
+  // outer glow ring (animated)
+  const glowGeo = new THREE.RingGeometry(0.55, 0.7, 32);
+  const glowMat = new THREE.MeshBasicMaterial({ color: COLORS.highlight, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(pos.x, 0.16, pos.z);
+  glow.userData = { type: 'current-glow' };
+  currentCellGroup.add(glow);
+
+  // small coordinate label
+  const label = makeTextSprite(`${String.fromCharCode(65 + col)}${row + 1}`, currentTheme === 'light' ? '#92400e' : '#fbbf24');
+  label.position.set(pos.x, 1.0, pos.z);
+  label.scale.set(0.35, 0.35, 1);
+  currentCellGroup.add(label);
+}
+
+/* ============================================================
+   Theme switching
+   ============================================================ */
+function applyTheme(theme) {
+  currentTheme = theme;
+  COLORS = THEMES[theme];
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('quoridor-theme', theme);
+  document.getElementById('theme-icon').textContent = theme === 'dark' ? '☾' : '☀';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',
+    theme === 'dark' ? '#0f172a' : '#e2e8f0');
+
+  // Update scene
+  scene.background = new THREE.Color(COLORS.bg);
+  scene.fog.color = new THREE.Color(COLORS.fog);
+  setupLights();
+  setupGround();
+  setupFrame();
+  setupGoals();
+
+  // Update cell materials
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const { mat, isLight } = cellMaterials[r][c];
+      mat.color.set(isLight ? COLORS.boardLight : COLORS.boardDark);
+    }
+  }
+  // Update pawns
+  rebuildPawns();
+  // Update walls
+  setupWallMaterials();
+  for (const w of state.walls) {
+    w.mesh.material = wallMaterials[w.owner];
+  }
+  // Update labels
+  setupLabels();
+  // Refresh highlights + always-visible wall slots
+  const activeOri = (state.mode === 'wall-h') ? 'h' : (state.mode === 'wall-v' ? 'v' : null);
+  showWallSlots(activeOri);
+  if (state.mode === 'move') showMoveHighlights();
+  showCurrentCellHighlight();
+}
+
+document.getElementById('btn-theme').addEventListener('click', () => {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+});
+
+/* ============================================================
+   Raycasting / interaction
+   ============================================================ */
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function getIntersect(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  let clientX, clientY;
+  if (event.touches && event.touches[0]) {
+    clientX = event.touches[0].clientX; clientY = event.touches[0].clientY;
+  } else if (event.changedTouches && event.changedTouches[0]) {
+    clientX = event.changedTouches[0].clientX; clientY = event.changedTouches[0].clientY;
+  } else {
+    clientX = event.clientX; clientY = event.clientY;
+  }
+  pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+
+  const targets = [];
+  // Cells are used for movement; only the selected wall orientation exposes
+  // selectable hitboxes. Decorative rails never compete with player input.
+  targets.push(...cellMeshes.flat());
+  if (state.mode !== 'move') {
+    targets.push(...wallSlotGroup.children.filter(m => m.userData.selectable));
+  }
+  // In move mode, also include highlight markers (they sit slightly above cells)
+  if (state.mode === 'move') {
+    targets.push(...highlightGroup.children.filter(m => m.userData.type === 'highlight'));
+  }
+  const hits = raycaster.intersectObjects(targets, false);
+  return hits[0] || null;
+}
+
+let pointerDownPos = null;
+let pointerDownTime = 0;
+
+function onPointerDown(e) {
+  const cx = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
+  const cy = e.clientY || (e.touches && e.touches[0]?.clientY) || 0;
+  pointerDownPos = { x: cx, y: cy };
+  pointerDownTime = performance.now();
+}
+
+function onPointerUp(e) {
+  if (state.over) return;
+  if (!pointerDownPos) return;
+  const cx = e.clientX || (e.changedTouches && e.changedTouches[0]?.clientX) || 0;
+  const cy = e.clientY || (e.changedTouches && e.changedTouches[0]?.clientY) || 0;
+  const dist = Math.hypot(cx - pointerDownPos.x, cy - pointerDownPos.y);
+  const dt = performance.now() - pointerDownTime;
+  pointerDownPos = null;
+  if (dist > 8 || dt > 600) return;
+
+  const hit = getIntersect(e);
+  if (!hit) return;
+  const ud = hit.object.userData;
+
+  if (state.mode === 'move') {
+    handleMoveTap(ud);
+  } else {
+    handleWallTap(ud);
+  }
+}
+
+function handleMoveTap(ud) {
+  if (ud.type !== 'cell' && ud.type !== 'highlight') return;
+  const { row, col } = ud;
+  // In online mode, only allow my turn
+  if (state.online && state.current !== state.myPlayer) {
+    showToast('صبر کن نوبت حریف تمام شود', 'info');
+    return;
+  }
+  const valid = getValidMoves(state.current);
+  const ok = valid.some(m => m.row === row && m.col === col);
+  if (!ok) {
+    if (isOwnPawn(row, col)) showToast('این مهره شماست!', 'info');
+    else showToast('حرکت نامعتبر', 'error');
+    return;
+  }
+  movePawn(state.current, row, col);
+  if (state.online) sendMove({ type: 'move', player: state.current, row, col });
+}
+
+function isOwnPawn(row, col) {
+  return state.pawns[state.current].row === row && state.pawns[state.current].col === col;
+}
+
+function handleWallTap(ud) {
+  if (ud.type !== 'slot' && ud.type !== 'slot-hit') return;
+  const { row, col, orientation } = ud;
+  if (state.online && state.current !== state.myPlayer) {
+    showToast('صبر کن نوبت حریف تمام شود', 'info');
+    return;
+  }
+  if (state.wallsLeft[state.current] <= 0) {
+    showToast('دیواری باقی نمانده', 'error'); return;
+  }
+  if (!canPlaceWall(row, col, orientation)) {
+    showToast('قابل قرار دادن نیست', 'error'); return;
+  }
+  placeWall(row, col, orientation, state.current);
+  state.wallsLeft[state.current]--;
+  if (state.online) sendMove({ type: 'wall', player: state.current, row, col, orientation });
+  endTurn();
+}
+
+function onPointerMove(e) {
+  if (state.over) return;
+  if (state.mode === 'move') {
+    if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+    return;
+  }
+  const hit = getIntersect(e);
+  if (!hit || !hit.object.userData) {
+    if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+    return;
+  }
+  const ud = hit.object.userData;
+  let row, col, orientation;
+  if (ud.type === 'slot' || ud.type === 'slot-hit') {
+    row = ud.row; col = ud.col; orientation = ud.orientation;
+  } else {
+    if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+    return;
+  }
+  updateGhost({ row, col }, orientation);
+}
+
+renderer.domElement.addEventListener('pointerdown', onPointerDown);
+renderer.domElement.addEventListener('pointerup', onPointerUp);
+renderer.domElement.addEventListener('pointermove', onPointerMove);
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+/* ============================================================
+   Game flow
+   ============================================================ */
+function movePawn(player, row, col) {
+  state.pawns[player] = { row, col };
+  const target = gridToWorld(row, col);
+  const mesh = pawnMeshes[player];
+  const start = mesh.position.clone();
+  const dur = 380;
+  const t0 = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - t, 3);
+    mesh.position.x = start.x + (target.x - start.x) * e;
+    mesh.position.z = start.z + (target.z - start.z) * e;
+    mesh.position.y = 0.12 + Math.sin(t * Math.PI) * 0.6;
+    if (t < 1) requestAnimationFrame(step);
+    else { mesh.position.set(target.x, 0.12, target.z); afterMove(); }
+  }
+  requestAnimationFrame(step);
+}
+
+function afterMove() {
+  if (checkWin()) return;
+  endTurn();
+}
+
+function checkWin() {
+  for (let p = 0; p < 2; p++) {
+    const goalRow = p === 0 ? BOARD_SIZE - 1 : 0;
+    if (state.pawns[p].row === goalRow) {
+      state.over = true;
+      state.winner = p;
+      const name = p === 0 ? 'بازیکن سفید' : 'بازیکن مشکی';
+      setTimeout(() => showGameOver('پایان بازی!', `برنده: ${name} 🎉`), 600);
+      return true;
+    }
+  }
+  return false;
+}
+
+function endTurn() {
+  state.current = 1 - state.current;
+  updateHUD();
+  // Refresh wall slots (since wallsLeft changed) + move highlights if in move mode
+  const activeOri = (state.mode === 'wall-h') ? 'h' : (state.mode === 'wall-v' ? 'v' : null);
+  showWallSlots(activeOri);
+  if (state.mode === 'move') showMoveHighlights();
+  showCurrentCellHighlight();
+}
+
+/* ============================================================
+   Mode buttons (separated)
+   ============================================================ */
+const btnModePawn = document.getElementById('btn-mode-pawn');
+const btnModeWallH = document.getElementById('btn-mode-wall-h');
+const btnModeWallV = document.getElementById('btn-mode-wall-v');
+
+function setMode(mode) {
+  state.mode = mode;
+  btnModePawn.classList.toggle('active', mode === 'move');
+  btnModeWallH.classList.toggle('active', mode === 'wall-h');
+  btnModeWallV.classList.toggle('active', mode === 'wall-v');
+  btnModePawn.setAttribute('aria-pressed', String(mode === 'move'));
+  btnModeWallH.setAttribute('aria-pressed', String(mode === 'wall-h'));
+  btnModeWallV.setAttribute('aria-pressed', String(mode === 'wall-v'));
+  document.getElementById('app').classList.toggle('wall-mode', mode !== 'move');
+  updateModeCoach(mode);
+  clearHighlights();
+  // Wall slots are ALWAYS visible (both orientations).
+  // When in a wall mode, that orientation gets highlighted.
+  const activeOri = (mode === 'wall-h') ? 'h' : (mode === 'wall-v' ? 'v' : null);
+  showWallSlots(activeOri);
+  if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+  if (mode === 'move') {
+    showMoveHighlights();
+  }
+  showCurrentCellHighlight();
+}
+
+btnModePawn.addEventListener('click', () => setMode('move'));
+btnModeWallH.addEventListener('click', () => setMode('wall-h'));
+btnModeWallV.addEventListener('click', () => setMode('wall-v'));
+
+const modeCoach = document.getElementById('mode-coach');
+const modeCoachIcon = document.getElementById('mode-coach-icon');
+const modeCoachText = document.getElementById('mode-coach-text');
+function updateModeCoach(mode) {
+  const isWall = mode !== 'move';
+  modeCoach.classList.toggle('wall-mode', isWall);
+  if (mode === 'wall-h') {
+    modeCoachIcon.textContent = '═';
+    modeCoachText.innerHTML = '<strong>دیوار افقی:</strong> خط‌های طلایی قابل انتخاب‌اند؛ قرمز یعنی جای نامعتبر.';
+  } else if (mode === 'wall-v') {
+    modeCoachIcon.textContent = '║';
+    modeCoachText.innerHTML = '<strong>دیوار عمودی:</strong> خط‌های طلایی قابل انتخاب‌اند؛ قرمز یعنی جای نامعتبر.';
+  } else {
+    modeCoachIcon.textContent = '♟';
+    modeCoachText.innerHTML = '<strong>حرکت مهره:</strong> یکی از خانه‌های روشن را انتخاب کنید.';
+  }
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+  if (event.key === '1') setMode('move');
+  else if (event.key === '2') setMode('wall-h');
+  else if (event.key === '3') setMode('wall-v');
+  else if (event.key.toLowerCase() === 'r') document.getElementById('btn-rotate').click();
+  else if (event.key === 'Escape') setMode('move');
+});
+
+document.getElementById('btn-rotate').addEventListener('click', () => {
+  const startAz = controls.getAzimuthalAngle();
+  const targetAz = startAz + Math.PI / 2;
+  const dur = 600;
+  const t0 = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - t0) / dur);
+    const e = 1 - Math.pow(1 - t, 3);
+    const az = startAz + (targetAz - startAz) * e;
+    const dist = controls.getDistance();
+    const polar = controls.getPolarAngle();
+    const x = Math.sin(polar) * Math.sin(az) * dist;
+    const z = Math.sin(polar) * Math.cos(az) * dist;
+    const y = Math.cos(polar) * dist;
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 0, 0);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+});
+
+document.getElementById('btn-help').addEventListener('click', () => {
+  document.getElementById('help-panel').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  const helpPanel = document.getElementById('help-panel');
+  if (!helpPanel.contains(e.target) && e.target !== document.getElementById('btn-help')
+      && !document.getElementById('btn-help').contains(e.target)) {
+    helpPanel.classList.remove('open');
+  }
+});
+
+document.getElementById('btn-menu').addEventListener('click', () => {
+  document.getElementById('menu-modal').classList.add('show');
+});
+
+/* ============================================================
+   Toast / modal helpers
+   ============================================================ */
+const toast = document.getElementById('toast');
+function showToast(msg, type = 'info') {
+  toast.textContent = msg;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => { toast.className = 'toast'; }, 1800);
+}
+
+function showGameOver(title, text) {
+  document.getElementById('gameover-title').textContent = title;
+  document.getElementById('gameover-text').textContent = text;
+  document.getElementById('gameover-modal').classList.add('show');
+}
+
+function updateHUD() {
+  document.getElementById('walls-p1').textContent = state.wallsLeft[0];
+  document.getElementById('walls-p2').textContent = state.wallsLeft[1];
+  document.getElementById('bar-p1').style.width = (state.wallsLeft[0] / TOTAL_WALLS * 100) + '%';
+  document.getElementById('bar-p2').style.width = (state.wallsLeft[1] / TOTAL_WALLS * 100) + '%';
+  let turnText = 'نوبت: ' + (state.current === 0 ? 'بازیکن سفید' : 'بازیکن مشکی');
+  if (state.online) {
+    turnText += state.current === state.myPlayer ? ' (شما)' : ' (حریف)';
+  }
+  document.getElementById('turn-text').textContent = turnText;
+  document.getElementById('card-p1').classList.toggle('active', state.current === 0);
+  document.getElementById('card-p2').classList.toggle('active', state.current === 1);
+}
+
+function restartGame() {
+  state.pawns = [{ row: 0, col: 4 }, { row: 8, col: 4 }];
+  clearWalls();
+  state.wallsLeft = [TOTAL_WALLS, TOTAL_WALLS];
+  state.current = 0;
+  state.over = false;
+  state.winner = null;
+  updatePawnPosition(0);
+  updatePawnPosition(1);
+  clearHighlights();
+  if (ghostMesh) { wallGroup.remove(ghostMesh); ghostMesh.geometry.dispose(); ghostMesh = null; }
+  setMode('move');
+  updateHUD();
+}
+
+document.getElementById('gameover-restart').addEventListener('click', () => {
+  document.getElementById('gameover-modal').classList.remove('show');
+  if (state.online && state.conn) {
+    state.conn.send({ type: 'restart' });
+  }
+  restartGame();
+});
+document.getElementById('gameover-menu').addEventListener('click', () => {
+  document.getElementById('gameover-modal').classList.remove('show');
+  // Disconnect if online
+  if (state.online) disconnectOnline();
+  document.getElementById('menu-modal').classList.add('show');
+});
+
+/* ============================================================
+   Online multiplayer via PeerJS
+   ============================================================ */
+const PEER_KEY_PREFIX = 'quoridor3d-';
+const connectionStatus = document.getElementById('connection-status');
+const connectionText = document.getElementById('connection-text');
+const onlineIndicator = document.getElementById('online-indicator');
+
+function setConnectionStatus(status, text) {
+  connectionStatus.className = 'connection-status show ' + status;
+  connectionText.textContent = text;
+}
+
+function updateOnlineIndicator() {
+  if (state.online) {
+    onlineIndicator.className = 'online-indicator';
+    onlineIndicator.textContent = state.isHost ? 'آنلاین · میزبان' : 'آنلاین · مهمان';
+  } else {
+    onlineIndicator.className = 'online-indicator offline';
+    onlineIndicator.textContent = 'آفلاین · محلی';
+  }
+}
+
+function generateRoomCode() {
+  // Short 6-character code
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+// Create a host game
+function hostGame() {
+  const code = generateRoomCode();
+  const peerId = PEER_KEY_PREFIX + code;
+  setConnectionStatus('connecting', 'در حال ساخت بازی...');
+  state.peer = new Peer(peerId, { debug: 1 });
+
+  state.peer.on('open', (id) => {
+    state.online = true;
+    state.isHost = true;
+    state.myPlayer = 0;
+    updateOnlineIndicator();
+    const link = `${window.location.origin}${window.location.pathname}?room=${code}`;
+    document.getElementById('room-link-text').textContent = link;
+    document.getElementById('room-link-text').dataset.link = link;
+    document.getElementById('waiting-text').style.display = 'block';
+    setConnectionStatus('connecting', 'منتظر ورود حریف...');
+  });
+
+  state.peer.on('connection', (conn) => {
+    state.conn = conn;
+    setupConnHandlers(conn, true);
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Peer error:', err);
+    setConnectionStatus('error', 'خطا در اتصال');
+    if (err.type === 'unavailable-id') {
+      showToast('کد تکراری است. دوباره تلاش کنید.', 'error');
+    } else {
+      showToast('خطا: ' + err.type, 'error');
+    }
+  });
+}
+
+// Join a game
+function joinGame(code) {
+  // Strip URL prefix if user pasted full link
+  code = code.trim();
+  const match = code.match(/[?&]room=([A-Z0-9]+)/i);
+  if (match) code = match[1].toUpperCase();
+  else code = code.replace(/^quoridor3d-/i, '').toUpperCase();
+
+  if (!/^[A-Z0-9]{4,10}$/.test(code)) {
+    showToast('کد نامعتبر است', 'error');
+    return false;
+  }
+  setConnectionStatus('connecting', 'در حال اتصال به میزبان...');
+  state.peer = new Peer({ debug: 1 });
+
+  state.peer.on('open', (id) => {
+    const targetId = PEER_KEY_PREFIX + code;
+    const conn = state.peer.connect(targetId, { reliable: true });
+    state.conn = conn;
+    setupConnHandlers(conn, false);
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Peer error:', err);
+    setConnectionStatus('error', 'خطا در اتصال');
+    if (err.type === 'peer-unavailable') {
+      showToast('بازی پیدا نشد. کد را بررسی کنید.', 'error');
+    } else {
+      showToast('خطا: ' + err.type, 'error');
+    }
+  });
+  return true;
+}
+
+function setupConnHandlers(conn, isHost) {
+  conn.on('open', () => {
+    setConnectionStatus('', 'متصل');
+    setTimeout(() => { connectionStatus.classList.remove('show'); }, 2000);
+    state.online = true;
+    state.isHost = isHost;
+    state.myPlayer = isHost ? 0 : 1;
+    updateOnlineIndicator();
+    // Hide all modals
+    document.getElementById('create-modal').classList.remove('show');
+    document.getElementById('join-modal').classList.remove('show');
+    document.getElementById('menu-modal').classList.remove('show');
+    // Restart game to clean state
+    restartGame();
+    if (isHost) {
+      // Host tells guest to start
+      conn.send({ type: 'start', pawns: state.pawns, wallsLeft: state.wallsLeft, current: state.current });
+      showToast('حریف متصل شد! بازی شروع شد', 'success');
+    } else {
+      showToast('به بازی متصل شدید!', 'success');
+    }
+  });
+
+  conn.on('data', (data) => {
+    handleRemoteMessage(data);
+  });
+
+  conn.on('close', () => {
+    showToast('حریف بازی را ترک کرد', 'error');
+    setConnectionStatus('error', 'قطع ارتباط');
+    state.online = false;
+    state.conn = null;
+    updateOnlineIndicator();
+    setTimeout(() => {
+      document.getElementById('menu-modal').classList.add('show');
+    }, 1500);
+  });
+
+  conn.on('error', (err) => {
+    console.error('Conn error:', err);
+    setConnectionStatus('error', 'خطا');
+  });
+}
+
+function handleRemoteMessage(data) {
+  if (!data || typeof data !== 'object') return;
+  switch (data.type) {
+    case 'start':
+      // Received by guest
+      state.pawns = data.pawns;
+      state.wallsLeft = data.wallsLeft;
+      state.current = data.current;
+      updatePawnPosition(0);
+      updatePawnPosition(1);
+      updateHUD();
+      showMoveHighlights();
+      showCurrentCellHighlight();
+      break;
+    case 'move':
+      // Apply remote move
+      movePawn(data.player, data.row, data.col);
+      break;
+    case 'wall':
+      placeWall(data.row, data.col, data.orientation, data.player);
+      state.wallsLeft[data.player]--;
+      endTurn();
+      break;
+    case 'restart':
+      restartGame();
+      showToast('بازی مجدداً شروع شد', 'info');
+      break;
+  }
+}
+
+function sendMove(msg) {
+  if (state.conn && state.conn.open) {
+    state.conn.send(msg);
+  }
+}
+
+function disconnectOnline() {
+  if (state.conn) { state.conn.close(); state.conn = null; }
+  if (state.peer) { state.peer.destroy(); state.peer = null; }
+  state.online = false;
+  state.isHost = false;
+  updateOnlineIndicator();
+}
+
+/* ============================================================
+   Menu / modal wiring
+   ============================================================ */
+document.getElementById('menu-local').addEventListener('click', () => {
+  document.getElementById('menu-modal').classList.remove('show');
+  state.online = false;
+  updateOnlineIndicator();
+  restartGame();
+  showToast('بازی محلی شروع شد', 'success');
+});
+
+document.getElementById('menu-create').addEventListener('click', () => {
+  document.getElementById('menu-modal').classList.remove('show');
+  document.getElementById('create-modal').classList.add('show');
+  document.getElementById('room-link-text').textContent = 'در حال ساخت لینک...';
+  document.getElementById('waiting-text').style.display = 'block';
+  hostGame();
+});
+
+document.getElementById('menu-join').addEventListener('click', () => {
+  document.getElementById('menu-modal').classList.remove('show');
+  document.getElementById('join-modal').classList.add('show');
+  document.getElementById('join-input').focus();
+});
+
+document.getElementById('join-confirm').addEventListener('click', () => {
+  const code = document.getElementById('join-input').value;
+  if (!code) { showToast('کد را وارد کنید', 'error'); return; }
+  if (joinGame(code)) {
+    // Modal will be closed on successful connect
+  }
+});
+
+document.getElementById('join-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') document.getElementById('join-confirm').click();
+});
+
+document.getElementById('join-cancel').addEventListener('click', () => {
+  document.getElementById('join-modal').classList.remove('show');
+  document.getElementById('menu-modal').classList.add('show');
+  disconnectOnline();
+});
+
+document.getElementById('create-cancel').addEventListener('click', () => {
+  document.getElementById('create-modal').classList.remove('show');
+  document.getElementById('menu-modal').classList.add('show');
+  disconnectOnline();
+});
+
+document.getElementById('create-copy').addEventListener('click', () => {
+  const link = document.getElementById('room-link-text').dataset.link || '';
+  if (!link) return;
+  // Try clipboard API, fallback to execCommand
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(() => {
+      showToast('لینک کپی شد', 'success');
+    }).catch(() => fallbackCopy(link));
+  } else {
+    fallbackCopy(link);
+  }
+});
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('لینک کپی شد', 'success');
+  } catch (e) {
+    showToast('کپی نشد. لینک را دستی انتخاب کنید', 'error');
+  }
+  document.body.removeChild(ta);
+}
+
+document.getElementById('room-link-text').addEventListener('click', function() {
+  const link = this.dataset.link;
+  if (!link) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(() => showToast('لینک کپی شد', 'success'));
+  } else {
+    fallbackCopy(link);
+  }
+});
+
+/* ============================================================
+   Check URL for room code on load
+   ============================================================ */
+function checkUrlForRoom() {
+  const params = new URLSearchParams(window.location.search);
+  const room = params.get('room');
+  if (room) {
+    // Auto-open join modal
+    document.getElementById('menu-modal').classList.remove('show');
+    document.getElementById('join-modal').classList.add('show');
+    document.getElementById('join-input').value = room.toUpperCase();
+    // Auto-join after slight delay
+    setTimeout(() => {
+      if (joinGame(room.toUpperCase())) {
+        // Joined
+      }
+    }, 500);
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   Animation loop
+   ============================================================ */
+let clockT = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  clockT += 0.016;
+  controls.update();
+
+  // pulse highlights
+  highlightGroup.children.forEach((m, i) => {
+    if (m.userData.type === 'pulse') {
+      const s = 1 + 0.25 * Math.sin(clockT * 4 + i);
+      m.scale.set(s, s, s);
+      m.material.opacity = 0.3 + 0.2 * Math.sin(clockT * 4 + i);
+    }
+  });
+
+  // pulse current cell glow
+  currentCellGroup.children.forEach((m) => {
+    if (m.userData.type === 'current-glow') {
+      const s = 1 + 0.15 * Math.sin(clockT * 3);
+      m.scale.set(s, s, s);
+      m.material.opacity = 0.3 + 0.2 * Math.sin(clockT * 3);
+    }
+  });
+
+  // gentle bob for current pawn
+  if (!state.over) {
+    const cur = pawnMeshes[state.current];
+    cur.position.y = 0.12 + Math.abs(Math.sin(clockT * 2.5)) * 0.08;
+    const other = pawnMeshes[1 - state.current];
+    other.position.y = 0.12;
+  }
+
+  // rotate goal indicators subtly
+  goalP1.material.opacity = 0.35 + 0.2 * Math.sin(clockT * 2);
+  goalP2.material.opacity = 0.35 + 0.2 * Math.sin(clockT * 2 + 1);
+
+  renderer.render(scene, camera);
+}
+
+/* ============================================================
+   Resize
+   ============================================================ */
+function onResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+
+/* ============================================================
+   User registration (name + phone)
+   ============================================================ */
+const STORAGE_USER_KEY = 'quoridor-user';
+
+function loadUser() {
+  try {
+    const raw = localStorage.getItem(STORAGE_USER_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      state.user.name = obj.name || '';
+      state.user.phone = obj.phone || '';
+    }
+  } catch (e) {}
+}
+
+function saveUser() {
+  try {
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(state.user));
+  } catch (e) {}
+}
+
+function updateMenuUserDisplay() {
+  const el = document.getElementById('menu-player-name');
+  if (el) {
+    el.textContent = state.user.name || 'مهمان';
+  }
+  // Update player card display in HUD
+  const nameP1 = document.getElementById('name-p1');
+  const nameP2 = document.getElementById('name-p2');
+  if (nameP1 && nameP2) {
+    // In local mode, both names are the same user
+    if (!state.online) {
+      nameP1.textContent = state.user.name ? state.user.name + ' (سفید)' : 'بازیکن سفید';
+      nameP2.textContent = state.user.name ? state.user.name + ' (مشکی)' : 'بازیکن مشکی';
+    } else {
+      // In online mode, p1 = my name if I'm host, else opponent
+      if (state.isHost) {
+        nameP1.textContent = state.user.name || 'من';
+        nameP2.textContent = state.opponentName || 'حریف';
+      } else {
+        nameP1.textContent = state.opponentName || 'حریف';
+        nameP2.textContent = state.user.name || 'من';
+      }
+    }
+  }
+}
+
+function showRegisterModal() {
+  document.getElementById('register-name').value = state.user.name || '';
+  document.getElementById('register-phone').value = state.user.phone || '';
+  document.getElementById('register-modal').classList.add('show');
+  setTimeout(() => document.getElementById('register-name').focus(), 100);
+}
+
+function hideRegisterModal() {
+  document.getElementById('register-modal').classList.remove('show');
+}
+
+document.getElementById('register-confirm').addEventListener('click', () => {
+  const name = document.getElementById('register-name').value.trim();
+  const phone = document.getElementById('register-phone').value.trim();
+  if (!name) {
+    showToast('لطفاً نام خود را وارد کنید', 'error');
+    return;
+  }
+  if (phone && !/^[0-9+\-\s]{8,15}$/.test(phone)) {
+    showToast('شماره همراه نامعتبر است', 'error');
+    return;
+  }
+  state.user.name = name;
+  state.user.phone = phone;
+  saveUser();
+  hideRegisterModal();
+  updateMenuUserDisplay();
+  // Show the menu
+  document.getElementById('menu-modal').classList.add('show');
+  showToast('خوش آمدید، ' + name + '!', 'success');
+});
+
+document.getElementById('register-name').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') document.getElementById('register-phone').focus();
+});
+document.getElementById('register-phone').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') document.getElementById('register-confirm').click();
+});
+
+document.getElementById('menu-change-user').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('menu-modal').classList.remove('show');
+  showRegisterModal();
+});
+
+/* ============================================================
+   Random matchmaking
+   Uses a pool of fixed lobby IDs. First player to grab a slot becomes
+   the host; next player connects as guest.
+   ============================================================ */
+const RANDOM_LOBBY_COUNT = 20;  // up to 20 concurrent random games
+const LOBBY_PREFIX = 'quoridor3d-rand-';
+let randomMatchCancelled = false;
+
+function startRandomMatch() {
+  state.randomMatch = true;
+  randomMatchCancelled = false;
+  document.getElementById('random-modal').classList.add('show');
+  document.getElementById('random-status').textContent = 'در حال جستجوی حریف...';
+  document.getElementById('random-detail').textContent = 'لطفاً صبر کنید. این فرآیند ممکن است چند ثانیه طول بکشد.';
+
+  // Generate random order to try lobby slots
+  const slots = [];
+  for (let i = 1; i <= RANDOM_LOBBY_COUNT; i++) slots.push(i);
+  // Shuffle
+  for (let i = slots.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [slots[i], slots[j]] = [slots[j], slots[i]];
+  }
+
+  // First try to JOIN an existing host. If can't, become host on first available slot.
+  // We'll create the peer first, then attempt connections in sequence.
+  state.peer = new Peer({ debug: 1 });
+
+  state.peer.on('open', async (myId) => {
+    if (randomMatchCancelled) return;
+    updateRandomStatus('در حال جستجوی حریف...', 'تلاش برای اتصال به بازیکنان دیگر...');
+
+    // PHASE 1: Try to JOIN existing hosts (in randomized order).
+    // Use a short timeout per slot to keep things moving.
+    let joinedAsGuest = false;
+    for (let i = 0; i < slots.length && !joinedAsGuest && !randomMatchCancelled; i++) {
+      const slot = slots[i];
+      const targetId = LOBBY_PREFIX + slot;
+      try {
+        const conn = state.peer.connect(targetId, { reliable: true });
+        // Wait up to 600ms for connection (short so we move quickly)
+        const ok = await new Promise((resolve) => {
+          let done = false;
+          const timer = setTimeout(() => {
+            if (!done) { done = true; resolve(false); }
+          }, 600);
+          conn.on('open', () => {
+            if (!done) { done = true; clearTimeout(timer); resolve(true); }
+          });
+          conn.on('error', () => {
+            if (!done) { done = true; clearTimeout(timer); resolve(false); }
+          });
+        });
+        if (ok) {
+          state.conn = conn;
+          joinedAsGuest = true;
+          updateRandomStatus('حریف پیدا شد!', 'در حال راه‌اندازی بازی...');
+          setupConnHandlers(conn, false); // false = guest
+          return;
+        }
+      } catch (e) {}
+    }
+
+    if (randomMatchCancelled) return;
+
+    // PHASE 2: No existing host found - become host on first available slot.
+    // Try to register as host with a specific peer ID.
+    let hostSlot = null;
+    for (let i = 0; i < slots.length && !hostSlot && !randomMatchCancelled; i++) {
+      const slot = slots[i];
+      const slotId = LOBBY_PREFIX + slot;
+      // Try to register a new peer with that exact ID.
+      // If the ID is taken by someone else, this will fail with 'unavailable-id'.
+      const acquired = await new Promise((resolve) => {
+        let resolved = false;
+        const testPeer = new Peer(slotId, { debug: 0 });
+        const timer = setTimeout(() => {
+          if (!resolved) {
+            resolved = true;
+            try { testPeer.destroy(); } catch(e){}
+            resolve(false);
+          }
+        }, 500);
+        testPeer.on('open', () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            resolve(testPeer);
+          }
+        });
+        testPeer.on('error', () => {
+          if (!resolved) {
+            resolved = true;
+            clearTimeout(timer);
+            try { testPeer.destroy(); } catch(e){}
+            resolve(false);
+          }
+        });
+      });
+      if (acquired) {
+        // Switch state.peer to the slot-acquired peer
+        try { state.peer.destroy(); } catch(e){}
+        state.peer = acquired;
+        hostSlot = slot;
+        break;
+      }
+    }
+
+    if (randomMatchCancelled) return;
+
+    if (hostSlot) {
+      // We are the host now - wait for a guest to connect
+      updateRandomStatus('منتظر حریف...', 'شما میزبان هستید. منتظر ورود بازیکن دیگر...');
+      state.peer.on('connection', (conn) => {
+        if (state.conn) {
+          try { conn.close(); } catch(e){}
+          return;
+        }
+        state.conn = conn;
+        setupConnHandlers(conn, true);
+      });
+      state.peer.on('error', (err) => {
+        if (!state.conn) {
+          updateRandomStatus('خطا در اتصال', 'نمی‌توان به سرور متصل شد. دوباره تلاش کنید.');
+        }
+      });
+    } else {
+      // Phase 2 failed too. Try Phase 1 once more in case a host just appeared.
+      updateRandomStatus('در حال تلاش مجدد...', 'تلاش دوباره برای اتصال به حریف...');
+      for (let i = 0; i < slots.length && !joinedAsGuest && !randomMatchCancelled; i++) {
+        const slot = slots[i];
+        const targetId = LOBBY_PREFIX + slot;
+        try {
+          const conn = state.peer.connect(targetId, { reliable: true });
+          const ok = await new Promise((resolve) => {
+            let done = false;
+            const timer = setTimeout(() => { if (!done) { done = true; resolve(false); } }, 800);
+            conn.on('open', () => { if (!done) { done = true; clearTimeout(timer); resolve(true); } });
+            conn.on('error', () => { if (!done) { done = true; clearTimeout(timer); resolve(false); } });
+          });
+          if (ok) {
+            state.conn = conn;
+            joinedAsGuest = true;
+            updateRandomStatus('حریف پیدا شد!', 'در حال راه‌اندازی بازی...');
+            setupConnHandlers(conn, false);
+            return;
+          }
+        } catch (e) {}
+      }
+      updateRandomStatus('ظرفیت پر است', 'بازیکن دیگری پیدا نشد. بعداً دوباره تلاش کنید.');
+      setTimeout(() => {
+        if (!state.conn) cancelRandomMatch();
+      }, 3000);
+    }
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Random match peer error:', err);
+    if (randomMatchCancelled) return;
+    updateRandomStatus('خطا', err.type || 'خطای ناشناخته');
+  });
+}
+
+function updateRandomStatus(status, detail) {
+  document.getElementById('random-status').textContent = status;
+  document.getElementById('random-detail').textContent = detail;
+}
+
+function cancelRandomMatch() {
+  randomMatchCancelled = true;
+  state.randomMatch = false;
+  if (state.conn) { try { state.conn.close(); } catch(e){} state.conn = null; }
+  if (state.peer) { try { state.peer.destroy(); } catch(e){} state.peer = null; }
+  document.getElementById('random-modal').classList.remove('show');
+  document.getElementById('menu-modal').classList.add('show');
+}
+
+document.getElementById('menu-random').addEventListener('click', () => {
+  document.getElementById('menu-modal').classList.remove('show');
+  startRandomMatch();
+});
+
+document.getElementById('random-cancel').addEventListener('click', () => {
+  cancelRandomMatch();
+});
+
+/* ============================================================
+   Update setupConnHandlers to send/receive user info
+   ============================================================ */
+const _origSetupConnHandlers = setupConnHandlers;
+setupConnHandlers = function(conn, isHost) {
+  conn.on('open', () => {
+    setConnectionStatus('', 'متصل');
+    setTimeout(() => { connectionStatus.classList.remove('show'); }, 2000);
+    state.online = true;
+    state.isHost = isHost;
+    state.myPlayer = isHost ? 0 : 1;
+    state.randomMatch = false;
+    updateOnlineIndicator();
+    // Hide all modals (including random-modal if active)
+    document.getElementById('create-modal').classList.remove('show');
+    document.getElementById('join-modal').classList.remove('show');
+    document.getElementById('menu-modal').classList.remove('show');
+    document.getElementById('random-modal').classList.remove('show');
+    // Send my user info to opponent
+    // Only the display name is shared with the opponent; phone stays local.
+    conn.send({ type: 'user-info', name: state.user.name });
+    // Restart game to clean state
+    restartGame();
+    if (isHost) {
+      conn.send({ type: 'start', pawns: state.pawns, wallsLeft: state.wallsLeft, current: state.current });
+      showToast('حریف متصل شد! بازی شروع شد', 'success');
+    } else {
+      showToast('به بازی متصل شدید!', 'success');
+    }
+    updateMenuUserDisplay();
+  });
+
+  conn.on('data', (data) => {
+    handleRemoteMessage(data);
+  });
+
+  conn.on('close', () => {
+    showToast('حریف بازی را ترک کرد', 'error');
+    setConnectionStatus('error', 'قطع ارتباط');
+    state.online = false;
+    state.conn = null;
+    state.opponentName = '';
+    updateOnlineIndicator();
+    updateMenuUserDisplay();
+    setTimeout(() => {
+      document.getElementById('menu-modal').classList.add('show');
+    }, 1500);
+  });
+
+  conn.on('error', (err) => {
+    console.error('Conn error:', err);
+    setConnectionStatus('error', 'خطا');
+  });
+};
+
+/* ============================================================
+   Extend handleRemoteMessage to handle user-info
+   ============================================================ */
+const _origHandleRemoteMessage = handleRemoteMessage;
+handleRemoteMessage = function(data) {
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'user-info') {
+    state.opponentName = data.name || 'حریف';
+    updateMenuUserDisplay();
+    return;
+  }
+  // Delegate to original
+  _origHandleRemoteMessage(data);
+};
+
+/* ============================================================
+   Boot
+   ============================================================ */
+applyTheme(currentTheme);
+updateHUD();
+showMoveHighlights();
+showCurrentCellHighlight();
+// Always-visible wall slots on boot
+showWallSlots(null);
+animate();
+
+// Load saved user info
+loadUser();
+
+// Check if URL has room code (auto-join flow)
+if (!checkUrlForRoom()) {
+  // If user already registered, show menu; otherwise show register modal
+  if (state.user.name) {
+    hideRegisterModal();
+    updateMenuUserDisplay();
+    document.getElementById('menu-modal').classList.add('show');
+  } else {
+    // Register modal is already shown by default
+    // (it has 'show' class in the HTML)
+  }
+} else {
+  // Auto-join flow - if user not registered, still show register first
+  if (!state.user.name) {
+    // We'll let the join modal handle it
+  }
+  updateMenuUserDisplay();
+}
+
+// hide loading once first frame is rendered
+requestAnimationFrame(() => {
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('hide');
+    setTimeout(() => document.getElementById('loading').remove(), 600);
+  }, 300);
+});
+</script>
+</body>
+</html>
+<!-- Imported into Bazikhane catalog. -->

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Curated from Tabler Icons 3.35.0 (MIT License): https://tabler.io/icons -->
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="icon-home" viewBox="0 0 24 24"><path d="M5 12h-2l9-9 9 9h-2M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7M9 21v-6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v6"/></symbol>
+  <symbol id="icon-grid" viewBox="0 0 24 24"><path d="M4 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM14 5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1zM4 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1zM14 15a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="icon-heart" viewBox="0 0 24 24"><path d="m19.5 12.572-7.5 7.428-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572"/></symbol>
+  <symbol id="icon-history" viewBox="0 0 24 24"><path d="M12 8v4l2 2M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></symbol>
+  <symbol id="icon-help" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 16v.01M12 13a2 2 0 0 0 .914-3.782 1.98 1.98 0 0 0-2.414.483"/></symbol>
+  <symbol id="icon-user" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M6.168 18.849A4 4 0 0 1 10 16h4a4 4 0 0 1 3.834 2.855"/></symbol>
+  <symbol id="icon-search" viewBox="0 0 24 24"><path d="M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14M21 21l-6-6"/></symbol>
+  <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37 1 .608 2.296.07 2.572-1.065zM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/></symbol>
+  <symbol id="icon-headset" viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 1 1 16 0v3M18 19c0 1.657-2.686 3-6 3M4 14a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM15 14a2 2 0 0 1 2-2h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 9h.01M11 12h1v4h1"/></symbol>
+  <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 3a12 12 0 0 0 8.5 3A12 12 0 0 1 12 21 12 12 0 0 1 3.5 6 12 12 0 0 0 12 3M12 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2M12 12v2.5"/></symbol>
+  <symbol id="icon-login" viewBox="0 0 24 24"><path d="M9 8V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-2M3 12h13l-3-3M13 15l3-3"/></symbol>
+  <symbol id="icon-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+  <symbol id="icon-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10M17 4v8a5 5 0 0 1-10 0V4M5 7a2 2 0 1 0 0 4M19 7a2 2 0 1 1 0 4"/></symbol>
+  <symbol id="icon-gamepad" viewBox="0 0 24 24"><path d="M12 5h3.5a5 5 0 0 1 0 10H10l-4.015 4.227a2.3 2.3 0 0 1-3.923-2.035l1.634-8.173A5 5 0 0 1 8.6 5zM14 15l4.07 4.284a2.3 2.3 0 0 0 3.925-2.023l-1.6-8.232M8 9v2M7 10h2M14 10h2"/></symbol>
+  <symbol id="icon-book" viewBox="0 0 24 24"><path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0M3 6v13M12 6v13M21 6v13"/></symbol>
+  <symbol id="icon-bookmark" viewBox="0 0 24 24"><path d="M18 7v14l-6-4-6 4V7a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4z"/></symbol>
+  <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 1 0-18c4.97 0 9 3.582 9 8 0 2.21-2.015 4-4.5 4H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21M8.5 9.5v.01M12.5 6.5v.01M16.5 9.5v.01"/></symbol>
+  <symbol id="icon-message" viewBox="0 0 24 24"><path d="m3 20 1.3-3.9c-2.324-3.437-1.426-7.872 2.1-10.374 3.526-2.501 8.59-2.296 11.845.48 3.255 2.777 3.695 7.266 1.029 10.501-2.666 3.235-7.615 4.215-11.574 2.293z"/></symbol>
+  <symbol id="icon-bolt" viewBox="0 0 24 24"><path d="M13 3v7h6l-8 11v-7H5z"/></symbol>
+  <symbol id="icon-adjustments" viewBox="0 0 24 24"><path d="M4 10a2 2 0 1 0 4 0 2 2 0 0 0-4 0M6 4v4M6 12v8M10 16a2 2 0 1 0 4 0 2 2 0 0 0-4 0M12 4v10M12 18v2M16 7a2 2 0 1 0 4 0 2 2 0 0 0-4 0M18 4v1M18 9v11"/></symbol>
+</svg>

@@ -1,0 +1,33 @@
+/* Material Studio: theme-aware surfaces, without changing board picking geometry. */
+body[data-art]{--art-accent:var(--accent,#438bc0);--art-paper:var(--paper,#fff);--art-ink:var(--ink,#183753);--art-bg:var(--bg,#edf3fa);background:radial-gradient(ellipse at 15% 0%,color-mix(in srgb,var(--art-accent),transparent 91%),transparent 55%),var(--art-bg);color:var(--art-ink)}
+body[data-art].embedded-game{background:radial-gradient(ellipse at 90% 2%,color-mix(in srgb,var(--art-accent),transparent 87%),transparent 45%),radial-gradient(ellipse at 0% 70%,color-mix(in srgb,var(--art-accent),transparent 95%),transparent 55%),var(--art-bg)!important}
+body[data-art] :is(.player,.controls,.control-dock,.control-card,.ux-panel,.activity){background-image:linear-gradient(145deg,#ffffff0d,transparent 60%);box-shadow:0 8px 24px #18355008,inset 0 1px 0 #ffffff60!important;border-radius:20px}
+body[data-art].embedded-game .ux-panel{align-self:stretch}
+body[data-art] .player.active{box-shadow:0 5px 20px color-mix(in srgb,var(--pc,var(--art-accent)),transparent 85%),inset 0 1px 0 #ffffff80!important;background-image:linear-gradient(125deg,color-mix(in srgb,var(--pc,var(--art-accent)),transparent 92%),transparent)}
+body[data-art] :is(.avatar,.piece-symbol,.brand-mark,.brand-logo){filter:drop-shadow(0 3px 3px #132d481c)}
+body[data-art] :is(.primary,.primary-btn,.confirm-btn,.new-btn,.action.primary,.touch-dock button[data-action=confirm]){background-image:linear-gradient(165deg,#ffffff23,transparent 50%,#0d254019);box-shadow:inset 0 1px 0 #ffffff40,0 4px 10px #15355712}
+body[data-art] button{transition:box-shadow .16s ease,background-color .16s ease,opacity .16s ease}body[data-art] button:active:not(:disabled){box-shadow:inset 0 2px 4px #18355020!important}body[data-art] button:focus-visible{outline:3px solid #e8b64a;outline-offset:3px}
+body[data-art] :is(.touch-dock,.quickbar){box-shadow:0 -7px 24px #1430520c;background:var(--art-paper);border-top-color:color-mix(in srgb,var(--art-accent),transparent 80%)}
+body[data-art] :is(.reserve,.piece,.move-card,.pawn-choice){background-image:linear-gradient(145deg,#ffffff0e,transparent 70%);box-shadow:0 3px 7px #16334706,inset 0 1px 0 #ffffff50}
+body[data-art] :is(.reserve.selected,.piece.selected,.move-card.selected,.pawn-choice.selected){box-shadow:0 0 0 2px color-mix(in srgb,var(--art-accent),transparent 84%),0 5px 14px #193c5511}
+body[data-art] .board-shell{filter:drop-shadow(0 12px 12px #19384e17)!important}body[data-art] .board-frame{box-shadow:0 7px 0 color-mix(in srgb,var(--board),#193858 18%),0 18px 32px #233e6026,inset 0 1px 0 #ffffffb0;border-color:color-mix(in srgb,var(--board),#294d75 15%)}
+body[data-art=onitama] .move-card .card-diagram i.destination{box-shadow:inset 0 1px 0 #ffffff66,0 1px 3px #16375830}body[data-art=onitama] .move-card .kanji{font-family:serif;opacity:.85}body[data-art=onitama] .ux-card-near{border-inline-start:3px solid var(--art-accent)}
+body[data-art=gobblet] .cup{background-image:repeating-linear-gradient(91deg,#ffffff0c 0 1px,transparent 1px 3px),linear-gradient(100deg,#fff6,transparent 40%,#0003);box-shadow:inset 1px 0 0 #ffffff50,0 5px 7px #16362820}
+body[data-art=quarto] .selected-detail{border-inline-start:3px solid var(--art-accent)}body[data-art=blokus] .piece-mini{filter:drop-shadow(0 2px 1px #2d345524)}
+body[data-art=ludo] .die,body[data-art=snakes] .die{border-color:#ccd9eb;background:radial-gradient(ellipse at 20% 0%,#fff 10%,#f6f9ff 50%,#e3ebf8);box-shadow:inset 1px 2px 0 #fff,0 5px 0 #bdcce5,0 10px 16px #1c385625}
+body[data-art] dialog{box-shadow:0 24px 90px #102b4d40,inset 0 1px 0 #ffffff80}body[data-art] dialog::backdrop{background:#102c4a80;backdrop-filter:blur(5px)}body[data-art] :is(.instruction,.ux-summary){line-height:1.95}
+body[data-art=santorini] .board-wrap{box-shadow:0 15px 50px #07597825}body[data-art=santorini] :is(.phase-card,.ux-santorini){border:1px solid #ffffff8c;box-shadow:0 6px 22px #16466713}
+@media(prefers-reduced-motion:reduce){body[data-art] button{transition:none}}
+/* Each table has a material environment, not a translucent overlay over the board. */
+body[data-art=ludo]{--art-bg:var(--bg);background-image:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--accent),transparent 88%),transparent 65%),repeating-linear-gradient(32deg,#ffffff0a 0 1px,transparent 1px 5px)}
+body[data-art=ludo] .board-frame{padding:10px;background:repeating-linear-gradient(3deg,#ffffff0b 0 1px,transparent 1px 5px),linear-gradient(130deg,#b58a5e,#805d43);border:1px solid #a27e56;box-shadow:inset 0 1px 0 #f5dfb5,0 7px 0 #634e3e,0 20px 35px #152e5530}
+body[data-art=ludo] .players{direction:ltr}body[data-art=ludo] .player{direction:rtl}body[data-art=ludo] .players.four .player:nth-child(1){order:0}body[data-art=ludo] .players.four .player:nth-child(2){order:1}body[data-art=ludo] .players.four .player:nth-child(3){order:3}body[data-art=ludo] .players.four .player:nth-child(4){order:2}
+body[data-art=snakes] .board-frame{padding:9px;background:linear-gradient(135deg,#d8ba83,#95714b 48%,#c3a06b);border:1px solid #af8e60;box-shadow:inset 0 1px 0 #fff1ce,inset 0 0 0 4px #ffffff20,0 5px 0 #72573e,0 8px 0 #584b3d,0 21px 32px #19395030}
+body[data-art=snakes] #board{border-radius:12px;box-shadow:0 0 0 1px #3c615348}
+body[data-art=snakes] .board-frame.tilted{transform:perspective(1100px) rotateX(19deg) rotateZ(-1deg)}
+body[data-art=onitama].embedded-game{background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--p0,#588e9b),transparent 84%),transparent 55%),var(--bg)!important}
+body[data-art=gobblet].embedded-game,body[data-art=quarto].embedded-game{background:radial-gradient(ellipse at 60% 30%,color-mix(in srgb,var(--wood),transparent 88%),transparent 65%),var(--bg)!important}
+body[data-art=blokus].embedded-game{background:radial-gradient(ellipse at 20% 0%,color-mix(in srgb,var(--p0),transparent 88%),transparent 55%),var(--bg)!important}
+body[data-art] .board-shell{filter:drop-shadow(0 16px 17px #142c4c22)!important}
+body[data-art] .winner-symbol,body[data-art] .win-art{animation:table-win .6s ease-out both}@keyframes table-win{from{transform:translateY(12px) scale(.75);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){body[data-art] .winner-symbol,body[data-art] .win-art{animation:none}}
