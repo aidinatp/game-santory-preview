@@ -1,7 +1,7 @@
 (()=>{'use strict';const H=window.House;if(!H)return;
  document.body.classList.add('site-enabled');
  const requested=new URLSearchParams(location.search).get('page');const page=document.body.dataset.hub?(['guides','profile','settings','support','about','privacy'].includes(requested)?requested:'profile'):'library';
- const links=[['library','arcade.html','بازی‌ها','▦'],['guides','hub.html?page=guides','یاد بگیر','◇'],['profile','hub.html?page=profile','فضای من','◈'],['settings','hub.html?page=settings','تنظیمات','⚙'],['support','hub.html?page=support','پشتیبانی','؟']];
+ const links=[['library','arcade.html','بازی‌ها','▦'],['guides','hub.html?page=guides','آموزش','◇'],['profile','hub.html?page=profile','فضای من','◈'],['settings','hub.html?page=settings','تنظیمات','⚙'],['support','hub.html?page=support','پشتیبانی','؟']];
  function applyPreferences(){const p=H.preferences(),dark=p.theme==='dark'||p.theme==='system'&&matchMedia('(prefers-color-scheme:dark)').matches;document.documentElement.dataset.houseTheme=dark?'dark':'light';document.documentElement.classList.toggle('house-large',p.text==='large');document.documentElement.classList.toggle('house-reduce',p.reduceMotion)}
  const nav=document.querySelector('.nav'),accountKey='house-account-identity-v1';let registerLink=null;
  if(nav){nav.classList.add('command-header');const desktop=document.createElement('div');desktop.className='site-links';desktop.setAttribute('role','navigation');desktop.setAttribute('aria-label','بخش‌های سایت');for(const[id,href,name]of links){const a=document.createElement('a');a.href=href;a.textContent=name;if(page===id)a.setAttribute('aria-current','page');desktop.append(a)}nav.querySelector('.logo')?.after(desktop);
